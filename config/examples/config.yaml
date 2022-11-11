@@ -1,0 +1,13 @@
+log:
+  level: info
+
+metrics:
+  enabled: true
+  exporter: prometheus
+
+trace:
+  enabled: true
+  exporter: jaeger
+
+app:
+  url: CHANGE_ME

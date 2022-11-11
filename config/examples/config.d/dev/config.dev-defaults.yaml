@@ -1,0 +1,3 @@
+app:
+  threads: 10
+  url: https://example.dev.co
