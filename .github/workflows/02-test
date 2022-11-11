@@ -1,19 +1,14 @@
 name: Test config
 on:
   pull_request:
-    paths:
-      - 'config/**'
   push
     branches:
       - main
-    paths:
-      - 'config/**'
 jobs:
   test_config:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
     steps:
       - uses: actions/setup-go@v3
         with:
@@ -21,7 +16,5 @@ jobs:
       - uses: actions/checkout@v3
       - name: Test config package
         run: |
-          cd config
-
           go test -v ./...
 

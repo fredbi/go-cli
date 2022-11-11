@@ -1,4 +1,4 @@
-module github.com/fredbi/go-cli/config
+module github.com/fredbi/go-cli
 
 go 1.19
 

@@ -60,8 +60,4 @@ Most likely, secret files will be mounted from `Secret` resources.
 
 ### Side notes
 
-* Why several modules?
-  I wanted to build a single repo with a few loosely related utilities. 
-  I realized that putting this together resulted in a large set of dependencies,
-  which is almost always annoying to result when you consume only a few of the exposed packages.
-  By declaring smaller `go.mod` manifests, I've somewhat reduced this burden on consuming packages.
+(... to be continued...)
