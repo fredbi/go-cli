@@ -1,9 +1,9 @@
-name: Test config
+name: Run unit tests
 on:
   pull_request:
-  push
+  push:
     branches:
-      - main
+      - master
 jobs:
   test_config:
     runs-on: ubuntu-latest
