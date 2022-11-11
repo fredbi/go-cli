@@ -2,7 +2,7 @@
 
 A few utilities to build CLI and load config files on top of cobra and viper.
 
-This is based on the seminal work from @casualjim. I am grateful for his inspiring code.
+This is based on the seminal work from @casualjim. I am grateful to him for his much inspiring code.
 
 ## CLI
 
@@ -20,7 +20,7 @@ Applications will then be able to consume the settings from a viper configuratio
 
 Supported format: YAML, JSON
 
-Support file extensions: "yml", "yaml", "json"
+Supported file extensions: "yml", "yaml", "json"
 
 Folder structure:
 ```
@@ -29,6 +29,12 @@ Folder structure:
 ```
 
 When using default settings (these are configurable), the base path is defined by the `CONFIG_DIR` environment variable.
+
+Secret configurations:
+```
+{base path}/secrets.yaml                        # <- root configuration
+{base path}/config.d/{environment}/secrets.yaml  # <- configuration to merge for environment
+```
 
 ### Features
 

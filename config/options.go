@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	// Option configuring the config loader.
+	// Option to configure the config loader.
 	Option func(*options)
 
 	options struct {
@@ -24,7 +24,7 @@ type (
 func defaultOptions(opts []Option) *options {
 	o := &options{
 		basePathFromEnvVar: "",
-		basePath:           ".",
+		basePath:           DefaultBasePath,
 		envDir:             DefaultEnvPath,
 		radix:              DefaultConfigRadix,
 		suffix:             "",
@@ -47,6 +47,9 @@ func WithBasePathFromEnvVar(variable string) Option {
 	}
 }
 
+// WithBasePath defines the folder of the root configuration file.
+//
+// Defaults to "." (this default may be altered by changing DefaultBasePath).
 func WithBasePath(pth string) Option {
 	return func(o *options) {
 		o.basePath = pth
@@ -55,7 +58,7 @@ func WithBasePath(pth string) Option {
 
 // WithEnvDir defines the path to environment-specific configs, relative to the base path.
 //
-// Defaults to "config.d"
+// Defaults to "config.d" (this default may be altered by changing DefaultEnvPath).
 func WithEnvDir(dir string) Option {
 	return func(o *options) {
 		o.envDir = dir
@@ -64,8 +67,10 @@ func WithEnvDir(dir string) Option {
 
 // WithRadix defines the radix (base name) of a config file.
 //
-// Default to "config", meaning that recognized file are: "config.yaml", "config.yml", "config.json", or forms
-// such as "config.xxx.{json|yaml|yml}.
+// Default to "config", meaning that the recognized files are: "config.yaml", "config.yml", "config.json" for root files,
+// or forms such as "config.xxx.{json|yaml|yml} for env-specific files.
+//
+// The default may be altered by changing DefaultConfigRadix.
 func WithRadix(radix string) Option {
 	return func(o *options) {
 		o.radix = radix

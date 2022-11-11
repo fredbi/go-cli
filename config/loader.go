@@ -40,6 +40,7 @@ func NewLoader(opts ...Option) *Loader {
 	}
 }
 
+// LoadForEnv loads a configuration for a given environment.
 func (l *Loader) LoadForEnv(env string) (*viper.Viper, error) {
 	defaultCfg := viper.New()
 	defaultCfg.SetConfigName(l.radix)
@@ -48,7 +49,7 @@ func (l *Loader) LoadForEnv(env string) (*viper.Viper, error) {
 		// override path configuration and look in the tree containing the current working directory.
 		//
 		// This should be reserved to testing programs loading configs from a source repository.
-		base, err := findParentDir(l.radix, cfgTypes())
+		base, err := l.findParentDir(l.radix, cfgTypes())
 		if err != nil {
 			return nil, err
 		}
@@ -161,7 +162,54 @@ func (l *Loader) parseConfigFromExt(pth, ext string) (map[string]interface{}, er
 	return toMerge, nil
 }
 
+// findInParentDir explores the current directory and its parents to look for a root config file.
+//
+// This is useful for test programs looking for a config in the repo tree.
+func (l *Loader) findParentDir(configFile string, allowedExts []string) (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	var (
+		pth   string
+		found bool
+	)
+
+LOOP:
+	for cwd != "/" {
+		for _, ext := range allowedExts {
+			search := filepath.Join(cwd, mkExt(configFile, ext))
+			_, err = os.Stat(search)
+			if err == nil {
+				pth = cwd
+				found = true
+
+				break LOOP
+			}
+
+			if os.IsNotExist(err) {
+				cwd = filepath.Dir(cwd)
+
+				continue
+			}
+
+			return "", err
+		}
+	}
+
+	if !found {
+		_, _ = fmt.Fprintln(l.output, "cannot find config location in current parent tree:", configFile)
+
+		return "", nil
+	}
+
+	return pth, nil
+}
+
 // NewCombinedLoader builds a compound loader considering several Loadable in the provided order.
+//
+// This is used for example to load files with different base names.
 func NewCombinedLoader(loaders ...Loadable) *CombinedLoader {
 	return &CombinedLoader{loaders: loaders}
 }
@@ -218,41 +266,4 @@ func mkExt(ext, suffix string) string {
 	}
 
 	return ext + "." + suffix
-}
-
-// findInParentDir explores the current directory and its parents to look for a root config file.
-//
-// This is useful for test programs looking for a config in the repo tree.
-func findParentDir(configFile string, allowedExts []string) (string, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	var (
-		pth   string
-		found bool
-	)
-
-LOOP:
-	for cwd != "/" {
-		for _, ext := range allowedExts {
-			search := filepath.Join(cwd, mkExt(configFile, ext))
-			_, err = os.Stat(search)
-			if err == nil {
-				pth = cwd
-				found = true
-
-				break LOOP
-			}
-
-			cwd = filepath.Dir(cwd)
-		}
-	}
-
-	if !found {
-		return "", fmt.Errorf("cannot find config location (%s) in current parent tree", configFile)
-	}
-
-	return pth, err
 }
