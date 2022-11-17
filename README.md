@@ -1,3 +1,9 @@
+![Lint](https://github.com/fredbi/go-cli/actions/workflows/01-golang-lint.yaml/badge.svg)
+![CI](https://github.com/fredbi/go-cli/actions/workflows/02-test.yaml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/fredbi/go-cli/badge.svg)](https://coveralls.io/github/fredbi/go-cli)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/fredbi/go-cli)
+[![Go Reference](https://pkg.go.dev/badge/github.com/fredbi/go-cli.svg)](https://pkg.go.dev/github.com/fredbi/go-cli)
+
 # go-cli
 
 This repo exposes a few utilities to build command-line utilities and manage configurations on top of 

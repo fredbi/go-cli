@@ -16,5 +16,15 @@ jobs:
       - uses: actions/checkout@v3
       - name: Test config package
         run: |
-          go test -v ./...
+          DEPS="$(go list -deps ./...|grep 'fredbi/go-cli')"
+          go test \
+              -v \
+              -coverprofile=cover.out \
+              -covermode=atomic \
+              -coverpkg="$(echo ${DEPS}|sed -E '1,$s/\s/,/g')" \
+              ./...
 
+      - name: Prepare coverage output
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: cover.out
