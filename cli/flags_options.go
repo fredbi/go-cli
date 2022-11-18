@@ -2,9 +2,10 @@ package cli
 
 type (
 	flagOption struct {
-		fn        RegisterFunc
-		required  bool
-		configKey string
+		fn         RegisterFunc
+		required   bool
+		persistent bool
+		configKey  string
 	}
 )
 
@@ -21,6 +22,13 @@ func flagWithOptions(fn RegisterFunc, opts []FlagOption) flagOption {
 func FlagIsRequired() FlagOption {
 	return func(o *flagOption) {
 		o.required = true
+	}
+}
+
+// FlagIsPersistent declares the flag as persistent for the command.
+func FlagIsPersistent() FlagOption {
+	return func(o *flagOption) {
+		o.persistent = true
 	}
 }
 

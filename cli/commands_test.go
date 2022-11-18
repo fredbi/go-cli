@@ -20,33 +20,33 @@ func testRootCommand(t *testing.T, asserter func(*testing.T, *viper.Viper)) *Com
 			Short: "explores cobra command with flags and config bindings",
 			RunE: func(c *cobra.Command, _ []string) error {
 				cfg := ConfigFromContext(c.Context())
-				// assertions on flags bound to confi
+				// assertions on flags bound to config
 				asserter(t, cfg)
 
 				return nil
 			},
 		},
 		// single value flags
-		WithFlag(nil, "bool-flag", false, "A bool flag", BindFlagToConfig("flags.bool")),
-		WithFlag(nil, "true-bool-flag", true, "A bool flag defaulting to true", BindFlagToConfig("flags.true-bool")),
-		WithFlag(nil, "int-flag", int(1), "An integer flag", BindFlagToConfig("flags.int")),
-		WithFlag(nil, "int64-flag", int64(2), "An int64 flag", BindFlagToConfig("flags.int64")),
-		WithFlag(nil, "float32-flag", float32(1.04), "A float32 flag", BindFlagToConfig("flags.float32")),
-		WithFlag(nil, "float64-flag", 1.05, "A float64 flag", BindFlagToConfig("flags.float64")),
-		WithFlag(nil, "duration-flag", time.Second, "A duration flag", BindFlagToConfig("flags.duration")),
+		WithFlag("bool-flag", false, "A bool flag", BindFlagToConfig("flags.bool")),
+		WithFlag("true-bool-flag", true, "A bool flag defaulting to true", BindFlagToConfig("flags.true-bool")),
+		WithFlag("int-flag", int(1), "An integer flag", BindFlagToConfig("flags.int")),
+		WithFlag("int64-flag", int64(2), "An int64 flag", BindFlagToConfig("flags.int64")),
+		WithFlag("float32-flag", float32(1.04), "A float32 flag", BindFlagToConfig("flags.float32")),
+		WithFlag("float64-flag", 1.05, "A float64 flag", BindFlagToConfig("flags.float64")),
+		WithFlag("duration-flag", time.Second, "A duration flag", BindFlagToConfig("flags.duration")),
 		// TODO: uint, uint64, IP, IPMask, IPNet, []byte
 		// extensions flags
-		WithFlag(nil, "byte-size-flag", extensions.ByteSizeValue(1024*1024), "A byte-size extension flag", BindFlagToConfig("flags.byte-size")),
+		WithFlag("byte-size-flag", extensions.ByteSizeValue(1024*1024), "A byte-size extension flag", BindFlagToConfig("flags.byte-size")),
 		// TODO: count
 		// slice flags
-		WithSliceFlag(nil, "string-slice-flag", []string{"a", "b"}, "A string-slice flag", BindFlagToConfig("flags.string-slice")),
-		WithSliceFlag(nil, "ip-slice-flag", []net.IP{net.ParseIP("8.8.8.8"), net.ParseIP("127.0.0.1")}, "An IP-slice flag", BindFlagToConfig("flags.ip-slice")),
+		WithSliceFlag("string-slice-flag", []string{"a", "b"}, "A string-slice flag", BindFlagToConfig("flags.string-slice")),
+		WithSliceFlag("ip-slice-flag", []net.IP{net.ParseIP("8.8.8.8"), net.ParseIP("127.0.0.1")}, "An IP-slice flag", BindFlagToConfig("flags.ip-slice")),
 		// TODO: bools, durations, ints, ...
 		// persistent flags
-		WithPersistentFlag(nil, "persistent-bool-flag", false, "A persistent bool flag", BindFlagToConfig("flags.persistent.bool")),
-		WithPersistentFlag(nil, "persistent-int-flag", 2, "A persistent int flag", BindFlagToConfig("flags.persistent.int")),
-		WithPersistentFlag(nil, "persistent-float64-flag", 2.05, "A persistent float64 flag", BindFlagToConfig("flags.persistent.float64")),
-		WithPersistentFlag(nil, "persistent-duration-flag", 2*time.Second, "A persistent duration flag", BindFlagToConfig("flags.persistent.duration")),
+		WithFlag("persistent-bool-flag", false, "A persistent bool flag", BindFlagToConfig("flags.persistent.bool"), FlagIsPersistent()),
+		WithFlag("persistent-int-flag", 2, "A persistent int flag", BindFlagToConfig("flags.persistent.int"), FlagIsPersistent()),
+		WithFlag("persistent-float64-flag", 2.05, "A persistent float64 flag", BindFlagToConfig("flags.persistent.float64"), FlagIsPersistent()),
+		WithFlag("persistent-duration-flag", 2*time.Second, "A persistent duration flag", BindFlagToConfig("flags.persistent.duration"), FlagIsPersistent()),
 		/* TODO
 		WithPersistentFlagFunc(func(flags *pflag.FlagSet) string {
 			const userFlag = "extension-count"
@@ -79,6 +79,8 @@ func TestCommandWithFlags(t *testing.T) {
 				sizeAsString, ok := sizeConfig.(string)
 				require.Truef(t, ok, "expected a string representation of ByteSizeValue, got %T", sizeConfig)
 
+				// NOTE: we should extend viper to retrieve the true value.
+				// viper.Get() from flag values is currently hardcoding the retrieval of only a few native types.
 				size := extensions.NewByteSizeValue(0, new(uint64))
 				require.NoError(t, size.UnmarshalFlag(sizeAsString))
 				require.EqualValues(t, uint64(5*1000*1000), uint64(*size))
@@ -97,6 +99,7 @@ func TestCommandWithFlags(t *testing.T) {
 				ipsAsString, ok := ipConfig.(string)
 				require.True(t, ok)
 
+				// NOTE: we should extend viper to retrieve the true value.
 				ips := make([]net.IP, 0, 2)
 				v := gflag.NewFlagSliceValue(&ips, nil)
 				require.NoError(t, v.UnmarshalFlag(ipsAsString))

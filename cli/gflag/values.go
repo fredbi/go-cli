@@ -76,6 +76,11 @@ func NewFlagValue[T FlaggablePrimitives | FlaggableTypes](addr *T, defaultValue 
 	return m
 }
 
+// GetValue returns the underlying value of the flag.
+func (m Value[T]) GetValue() T {
+	return *m.Value
+}
+
 // String knows how to yield a string representation of type T.
 func (m *Value[T]) String() string {
 	asAny := any(m.Value)

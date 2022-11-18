@@ -4,6 +4,8 @@ package cli_test
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/fredbi/go-cli/cli"
 	"github.com/fredbi/go-cli/config"
@@ -36,10 +38,28 @@ const (
 
 // globalFlags captures CLI flags.
 //
-// In this example, we prefer to control over where the flag values are stored.
+// In this example, we choose to control over where the flag values are stored.
 //
 // This is not needed if all configuration is bound to viper.
 var globalFlags cliFlags
+
+func init() {
+	// set some config options for testing.
+	here, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("get current working dir: %v:", err)
+
+		return
+	}
+
+	// we want to look for config files in the "fixtures" folder.
+	fixtures := filepath.Join(here, "fixtures")
+	cli.SetConfigOptions(
+		config.WithMute(true),
+		config.WithWatch(false),
+		config.WithBasePath(fixtures),
+	)
+}
 
 type (
 	// TODO: could use struct tags for default and config key
@@ -130,29 +150,9 @@ func emptyRunFunc(c *cobra.Command, _ []string) error {
 	return nil
 }
 
-/*
-target:
-
-	func Execute() error {
-		return cli.NewCommand(
-			&cobra.Command{},
-			cli.WithConfigurator(
-				cli.Config(globalFlags.applyDefaults),
-			),
-			cli.WithTypedFlag(...),
-			cli.WithTypedPersistentFlag(&globalFlags.LogLevel, "log-level", globalFlags.Default().LogLevel, "Controls logging verbosity"),
-			cli.WithSubCommands(
-				cli.NewComand(
-					&cobra.Command{
-						...
-					},
-					cli.WithTypedFlags(...),
-				),
-			),
-		).Execute()
-	}
-*/
+// RootCmd illustrates the scaffolding of a command tree with explicit storage of the CLI flags and default values.
 func RootCmd() *cli.Command {
+
 	return cli.NewCommand(
 		&cobra.Command{
 			Use:   "example",
@@ -160,25 +160,30 @@ func RootCmd() *cli.Command {
 			Long:  "...",
 			RunE:  rootRunFunc,
 		},
-		cli.WithFlag(&globalFlags.DryRun, "dry-run", globalFlags.Defaults().DryRun, "Dry run",
+		cli.WithFlagVar(&globalFlags.DryRun, "dry-run", globalFlags.Defaults().DryRun, "Dry run",
 			cli.BindFlagToConfig(keyDry),
 		),
-		cli.WithPersistentFlag(&globalFlags.LogLevel, "log-level", globalFlags.Defaults().LogLevel, "Controls logging verbosity",
+		cli.WithFlagVar(&globalFlags.LogLevel, "log-level", globalFlags.Defaults().LogLevel, "Controls logging verbosity",
+			cli.FlagIsPersistent(),
 			cli.BindFlagToConfig(keyLog),
 		),
-		cli.WithPersistentFlag(&globalFlags.URL, "url", globalFlags.Defaults().URL, "The URL to connect to",
+		cli.WithFlagVar(&globalFlags.URL, "url", globalFlags.Defaults().URL, "The URL to connect to",
+			cli.FlagIsPersistent(),
 			cli.BindFlagToConfig(keyURL),
 		),
-		cli.WithPersistentFlagP(&globalFlags.Parallel, "parallel", "p", globalFlags.Defaults().Parallel, "Degree of parallelism",
+		cli.WithFlagVarP(&globalFlags.Parallel, "parallel", "p", globalFlags.Defaults().Parallel, "Degree of parallelism",
+			cli.FlagIsPersistent(),
 			cli.BindFlagToConfig(keyParallel),
 		),
 		// example with RegisterFunc, useful for maximum flexibility.
-		cli.WithPersistentFlagFunc(func(flags *pflag.FlagSet) string {
+		cli.WithFlagFunc(func(flags *pflag.FlagSet) string {
 			const userFlag = "user"
 			flags.StringVar(&globalFlags.User, userFlag, globalFlags.Defaults().User, "Originating user")
 			return userFlag
 		},
-			cli.FlagIsRequired(), cli.BindFlagToConfig(keyUser),
+			cli.FlagIsPersistent(),
+			cli.FlagIsRequired(),
+			cli.BindFlagToConfig(keyUser),
 		),
 		cli.WithSubCommands(
 			cli.NewCommand(
@@ -188,7 +193,7 @@ func RootCmd() *cli.Command {
 					Long:  "...",
 					RunE:  childRunFunc,
 				},
-				cli.WithFlag(&globalFlags.Child.Workers, "workers", globalFlags.Defaults().Child.Workers, "Number of workers threads",
+				cli.WithFlagVar(&globalFlags.Child.Workers, "workers", globalFlags.Defaults().Child.Workers, "Number of workers threads",
 					cli.FlagIsRequired(),
 					cli.BindFlagToConfig(keyWorkers),
 				),
@@ -214,14 +219,6 @@ func RootCmd() *cli.Command {
 		),
 		// apply config to the command tree
 		cli.WithConfig(cli.Config(globalFlags.applyDefaults)),
-	)
-}
-
-func init() {
-	// set some config options for testing.
-	cli.SetConfigOptions(
-		config.WithMute(true),
-		config.WithWatch(false),
 	)
 }
 
@@ -262,6 +259,7 @@ func Example_help() {
 	// done
 }
 
+// Example_rootCmd runs the root command.
 func Example_rootCmd() {
 	rootCmd := RootCmd()
 	rootCmd.SetArgs([]string{
@@ -293,6 +291,7 @@ func Example_rootCmd() {
 	// done
 }
 
+// Example_childCmd runs a child command.
 func Example_childCmd() {
 	rootCmd := RootCmd()
 	if err := rootCmd.ExecuteWithArgs(
@@ -324,6 +323,7 @@ func Example_childCmd() {
 
 }
 
+// Example_printCmd prints out the tree structure of the root command.
 func Example_printCmd() {
 	rootCmd := RootCmd()
 

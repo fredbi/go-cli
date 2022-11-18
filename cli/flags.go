@@ -27,11 +27,15 @@ func MustBindFromFlagSet(cfg *viper.Viper, key, flagName string, flags *pflag.Fl
 func mustBindFromFlagSet(cfg *viper.Viper, key, flagName string, flags *pflag.FlagSet) {
 	if flags == nil {
 		die("cannot bind on nil flags set")
+
+		return
 	}
 
 	flag := flags.Lookup(flagName)
 	if flag == nil {
 		die("binding unknown pflag to key: %v", key)
+
+		return
 	}
 
 	mustBindPFlag(cfg, key, flag)
@@ -40,9 +44,13 @@ func mustBindFromFlagSet(cfg *viper.Viper, key, flagName string, flags *pflag.Fl
 func mustBindPFlag(cfg *viper.Viper, key string, flag *pflag.Flag) {
 	if flag == nil {
 		die("binding unknown pflag to key: %v", key)
+
+		return
 	}
 
 	if err := cfg.BindPFlag(key, flag); err != nil {
 		die("binding pflag %s to key %s: %v", flag.Name, key, err)
+
+		return
 	}
 }

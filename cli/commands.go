@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	// Command wraps a *cobra.Command with some options to register and bind flags and config more easily.
+	// Command wraps a *cobra.Command with some options to register and bind flags more easily.
 	Command struct {
 		*cobra.Command
 		*options
@@ -128,7 +128,7 @@ func (c *Command) RegisterFlags() {
 // This applies recursively to all sub-commands.
 //
 // It doesn't perform anything if no flags or no config are set for the command
-// (use the options WithFlag() and WithConfig())
+// (use the options WithFlagVar() and WithConfig())
 func (c *Command) BindFlags() {
 	cfg := c.Config()
 	if cfg == nil {

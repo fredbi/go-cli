@@ -32,8 +32,6 @@ func WithConfig(cfg *viper.Viper) Option {
 	}
 }
 
-// TODO: with logger??
-
 // WithSubCommands adds child commands.
 func WithSubCommands(subs ...*Command) Option {
 	return func(o *options) {
@@ -45,75 +43,94 @@ func WithSubCommands(subs ...*Command) Option {
 func WithFlagFunc(regFunc RegisterFunc, opts ...FlagOption) Option {
 	return func(o *options) {
 		fl := flagWithOptions(regFunc, opts)
-		o.flagSetters = append(o.flagSetters, fl)
+		if fl.persistent {
+			o.persistentFlagSetters = append(o.persistentFlagSetters, fl)
+		} else {
+			o.flagSetters = append(o.flagSetters, fl)
+		}
 	}
 }
 
-// WithPersistentFlagFunc declares a persistent flag for the command using a RegisterFunc function and some flag options.
-func WithPersistentFlagFunc(regFunc RegisterFunc, opts ...FlagOption) Option {
+/*
+// TODO: with logger
+// WithLogFactory injects a log factory into the command tree.
+func WithLogger(logFactory log.Factory) Option {
 	return func(o *options) {
-		fl := flagWithOptions(regFunc, opts)
-		o.persistentFlagSetters = append(o.persistentFlagSetters, fl)
+		o.logFactory = logFactory
 	}
 }
+*/
 
-// TODO: with/without flag address
 // WithFlag declares a flag of any type supported by gflag, with some options.
-func WithFlag[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *T, name string, defaultValue T, usage string, opts ...FlagOption) Option {
-	return WithFlagP[T](addr, name, "", defaultValue, usage, opts...)
+//
+// The pointer to the flag value is allocated automatically.
+func WithFlag[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](name string, defaultValue T, usage string, opts ...FlagOption) Option {
+	return WithFlagP[T](name, "", defaultValue, usage, opts...)
+}
+
+// WithFlagP declares a flag of any type supported by gflag, with a shorthand name and some options.
+//
+// The pointer to the flag value is allocated automatically.
+func WithFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](name, shorthand string, defaultValue T, usage string, opts ...FlagOption) Option {
+	return WithFlagVarP[T](nil, name, shorthand, defaultValue, usage, opts...)
+}
+
+// WithFlagVar declares a flag of any type supported by gflag, with some options.
+//
+// The pointer to the flag value is provided explicitly.
+func WithFlagVar[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *T, name string, defaultValue T, usage string, opts ...FlagOption) Option {
+	return WithFlagVarP[T](addr, name, "", defaultValue, usage, opts...)
+}
+
+// WithFlagVarP declares a flag of any type supported by gflag, with a shorthand name and some options.
+//
+// The pointer to the flag value is provided explicitly.
+func WithFlagVarP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *T, name, shorthand string, defaultValue T, usage string, opts ...FlagOption) Option {
+	return withAnyFlagP(addr, name, shorthand, defaultValue, usage, opts...)
 }
 
 // WithSliceFlag declares a flag of any slice type supported by gflag, with some options.
-func WithSliceFlag[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *[]T, name string, defaultValue []T, usage string, opts ...FlagOption) Option {
-	return WithSliceFlagP[T](addr, name, "", defaultValue, usage, opts...)
+//
+// The pointer to the flag value is allocated automatically.
+func WithSliceFlag[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](name string, defaultValue []T, usage string, opts ...FlagOption) Option {
+	return WithSliceFlagP[T](name, "", defaultValue, usage, opts...)
 }
 
-// WithFlagP declares a flag of any type supported by gflag, with a short name and some options.
-func WithFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *T, name, short string, defaultValue T, usage string, opts ...FlagOption) Option {
-	return withAnyFlagP(addr, name, short, defaultValue, usage, false, opts...)
+// WithSliceFlagP declares a flag of any slice type supported by gflag, with a shorthand name and some options.
+//
+// The pointer to the flag value is allocated automatically.
+func WithSliceFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](name, shorthand string, defaultValue []T, usage string, opts ...FlagOption) Option {
+	return WithSliceFlagVarP[T](nil, name, shorthand, defaultValue, usage, opts...)
 }
 
-// WithSliceFlagP declares a flag of any slice type supported by gflag, with a short name and some options.
-func WithSliceFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *[]T, name, short string, defaultValue []T, usage string, opts ...FlagOption) Option {
-	return withAnySliceFlagP(addr, name, short, defaultValue, usage, false, opts...)
+// WithSliceFlagVar declares a flag of any slice type supported by gflag, with some options.
+//
+// The pointer to the flag value is provided explicitly.
+func WithSliceFlagVar[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *[]T, name string, defaultValue []T, usage string, opts ...FlagOption) Option {
+	return WithSliceFlagVarP[T](addr, name, "", defaultValue, usage, opts...)
 }
 
-// WithPersistentFlag declares a persistent flag of any type supported by gflag, with some options.
-func WithPersistentFlag[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *T, name string, defaultValue T, usage string, opts ...FlagOption) Option {
-	return WithPersistentFlagP[T](addr, name, "", defaultValue, usage, opts...)
+// WithSliceFlagVarP declares a flag of any slice type supported by gflag, with a shorthand name and some options.
+func WithSliceFlagVarP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *[]T, name, shorthand string, defaultValue []T, usage string, opts ...FlagOption) Option {
+	return withAnySliceFlagP(addr, name, shorthand, defaultValue, usage, opts...)
 }
 
-// WithPersistentSliceFlag declares a persistent flag of any slice type supported by gflag, with some options.
-func WithPersistentSliceFlag[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *[]T, name string, defaultValue []T, usage string, opts ...FlagOption) Option {
-	return WithPersistentSliceFlagP[T](addr, name, "", defaultValue, usage, opts...)
-}
-
-// WithPersistentFlagP declares a persistent flag of any type supported by gflag, with a short name and some options.
-func WithPersistentFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *T, name, short string, defaultValue T, usage string, opts ...FlagOption) Option {
-	return withAnyFlagP(addr, name, short, defaultValue, usage, true, opts...)
-}
-
-// WithPersistentSliceFlagP declares a persistent flag of any type supported by gflag, with a short name and some options.
-func WithPersistentSliceFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *[]T, name, short string, defaultValue []T, usage string, opts ...FlagOption) Option {
-	return withAnySliceFlagP(addr, name, short, defaultValue, usage, true, opts...)
-}
-
-func withAnyFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *T, name, short string, defaultValue T, usage string, isPersistent bool, opts ...FlagOption) Option {
+func withAnyFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *T, name, shorthand string, defaultValue T, usage string, opts ...FlagOption) Option {
 	regFunc := func(flags *pflag.FlagSet) string {
 		if addr == nil {
 			addr = new(T)
 		}
 		v := gflag.NewFlagValue[T](addr, defaultValue)
-		fl := flags.VarPF(v, name, short, usage)
+		fl := flags.VarPF(v, name, shorthand, usage)
 		fl.NoOptDefVal = v.NoOptDefVal
 
 		return fl.Name
 	}
 
-	return optFuncWithRegister(regFunc, isPersistent, opts)
+	return optFuncWithRegister(regFunc, opts)
 }
 
-func withAnySliceFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *[]T, name, short string, defaultValue []T, usage string, isPersistent bool, opts ...FlagOption) Option {
+func withAnySliceFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *[]T, name, short string, defaultValue []T, usage string, opts ...FlagOption) Option {
 	regFunc := func(flags *pflag.FlagSet) string {
 		if addr == nil {
 			slice := make([]T, 0, len(defaultValue))
@@ -125,13 +142,13 @@ func withAnySliceFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr 
 		return fl.Name
 	}
 
-	return optFuncWithRegister(regFunc, isPersistent, opts)
+	return optFuncWithRegister(regFunc, opts)
 }
 
-func optFuncWithRegister(regFunc RegisterFunc, isPersistent bool, opts []FlagOption) Option {
+func optFuncWithRegister(regFunc RegisterFunc, opts []FlagOption) Option {
 	return func(o *options) {
 		fl := flagWithOptions(regFunc, opts)
-		if isPersistent {
+		if fl.persistent {
 			o.persistentFlagSetters = append(o.persistentFlagSetters, fl)
 		} else {
 			o.flagSetters = append(o.flagSetters, fl)
