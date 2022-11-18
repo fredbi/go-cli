@@ -6,31 +6,56 @@ import (
 	"testing"
 
 	"github.com/fredbi/go-cli/config"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
-func init() {
-	// disable fatal with a global mock
-	SetDie(newFatalMock().Fatalf)
-}
-
 func TestConfig(t *testing.T) {
 	t.Parallel()
+
+	onceFatalMock.Do(func() {
+		dieMock = newFatalMock()
+	})
+	dieMock.Register(t)
+
+	t.Cleanup(func() {
+		dieMock.Reset()
+	})
 
 	os.Setenv(ConfigDebugEnv, "1")
 	t.Cleanup(func() {
 		os.Setenv(ConfigDebugEnv, "")
 	})
 
-	t.Run("should load config in debug mode", func(t *testing.T) {
+	t.Run("should die", func(t *testing.T) {
+		t.Parallel()
+		dieMock.Register(t)
 
-		cfg := ConfigForEnvWithOptions("dev", testConfigOptions(t))
+		Die("test err")
+		require.True(t, dieMock.Called(t))
+	})
+
+	t.Run("should load config in debug mode", func(t *testing.T) {
+		t.Parallel()
+		dieMock.Register(t)
+
+		cfg := ConfigForEnvWithOptions("dev", testConfigOptions(t),
+			func(v *viper.Viper) {
+				v.SetDefault("default.level", "debug")
+			},
+		)
 		require.NotNil(t, cfg)
+		require.False(t, dieMock.Called(t))
+		require.Equal(t, "debug", cfg.GetString("default.level"))
 	})
 
 	t.Run("should error on load config", func(t *testing.T) {
+		t.Parallel()
+		dieMock.Register(t)
+
 		cfg := ConfigForEnvWithOptions("dev", append(testConfigOptions(t), config.WithRadix("invalid")))
 		require.Nil(t, cfg)
+		require.True(t, dieMock.Called(t))
 	})
 }
 
