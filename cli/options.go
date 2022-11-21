@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"github.com/fredbi/go-cli/cli/gflag"
+	"github.com/fredbi/gflag"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )

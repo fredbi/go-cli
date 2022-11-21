@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fredbi/go-cli/cli/gflag"
-	"github.com/fredbi/go-cli/cli/gflag/extensions"
+	"github.com/fredbi/gflag"
+	"github.com/fredbi/gflag/extensions"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"

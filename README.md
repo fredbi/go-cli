@@ -30,7 +30,7 @@ The goals for this lib are:
 * to make all config exposed through a `viper` registry
 * to allow CLI flags to override this config
 * to remove the boiler-plate code needed to register, then bind the flags to the config registry
-* to work more easily with flags of various types, including slices or custom flag types
+* to work more easily with flags of various types, including slices or custom flag types -> defered to `github.com/fredbi/gflag`
 * to remove the need for the typical `init()` to perform all this initialization
 * to remove the need to use package-level variables
 * to design with testability in mind
@@ -49,6 +49,7 @@ import (
 )
 
 const (
+    // viper config keys
 	keyLog      = "app.log.level"
 	keyDry      = "run.dryRun"
 )
@@ -56,26 +57,28 @@ const (
 // RootCmd builds a runnable root command
 func RootCmd() *cli.Command {
 	return cli.NewCommand(
+        // your usual cobra command, wrapped as a function
 		&cobra.Command{
 			Use:   "example",
 			Short: "examplifies a cobra command",
 			Long:  "...",
 			RunE:  rootRunFunc,
 		},
-		cli.WithFlag(nil, "dry-run", false, "Dry run",
-			cli.BindFlagToConfig(keyDry),
+        // flag bindings
+		cli.WithFlag("dry-run", false, "Dry run",
+			cli.BindFlagToConfig(keyDry), // flag bindings to a viper config
 		),
-		cli.WithPersistentFlag(nil, "log-level", "info", "Controls logging verbosity",
+		cli.WithPersistentFlag("log-level", "info", "Controls logging verbosity",
 			cli.BindFlagToConfig(keyLog),
 		),
 		// apply viper config to the command tree
-		cli.WithConfig(cli.Config()),
+		cli.WithConfig(cli.Config()), // command binding to a viper config -> will be available from context
 	)
 }
 
 // rootRunFunc runs the root command
 func rootRunFunc(c *cobra.Command, _ []string) error {
-	cfg := cli.ConfigFromContext(c.Context())
+	cfg := cli.ConfigFromContext(c.Context()) // retrieve the config
 	if cfg == nil {
 		cli.Die("failed to retrieve config")
 	}
@@ -90,6 +93,7 @@ func rootRunFunc(c *cobra.Command, _ []string) error {
 }
 
 func main() {
+    // no global vars, no init() ...
 	if err := RootCmd().Execute(); err != nil {
 		cli.Die("executing: %v", err)
 	}
