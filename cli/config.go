@@ -23,6 +23,8 @@ var (
 // ConfigForEnv or Config.
 //
 // By default, this package doesn't set any particular option and uses all defaults from the config package.
+//
+// TODO: package-level options should be removed and injected.
 func SetConfigOptions(opts ...config.Option) {
 	configOptions = opts
 }

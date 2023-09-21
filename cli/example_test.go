@@ -4,12 +4,9 @@ package cli_test
 import (
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/fredbi/go-cli/cli"
 	"github.com/fredbi/go-cli/cli/injectable"
-	"github.com/fredbi/go-cli/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -36,68 +33,6 @@ const (
 	keyWorkers  = "app.child.workers"
 	keyDry      = "run.dryRun"
 )
-
-// globalFlags captures CLI flags.
-//
-// In this example, we choose to control over where the flag values are stored.
-//
-// This is not needed if all configuration is bound to viper.
-var globalFlags cliFlags
-
-func init() {
-	// set some config options for testing.
-	here, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("get current working dir: %v:", err)
-
-		return
-	}
-
-	// we want to look for config files in the "fixtures" folder.
-	fixtures := filepath.Join(here, "fixtures")
-	cli.SetConfigOptions(
-		config.WithMute(true),
-		config.WithWatch(false),
-		config.WithBasePath(fixtures),
-	)
-}
-
-type (
-	// TODO: could use struct tags for default and config key
-	cliFlags struct {
-		DryRun   bool
-		URL      string
-		Parallel int
-		User     string
-		LogLevel string
-
-		Child childFlags // flags for the child command
-	}
-
-	childFlags struct {
-		Workers int
-	}
-)
-
-// Default values for flags.
-func (f cliFlags) Defaults() cliFlags {
-	return cliFlags{
-		URL:      "https://www.example.com",
-		Parallel: 2,
-		LogLevel: "info",
-		Child: childFlags{
-			Workers: 5,
-		},
-	}
-}
-
-// applyDefaults set default values for the config. It is consistent with flag defaults.
-func (f cliFlags) applyDefaults(cfg *viper.Viper) {
-	cfg.SetDefault(keyURL, globalFlags.Defaults().URL)
-	cfg.SetDefault(keyParallel, globalFlags.Defaults().Parallel)
-	cfg.SetDefault(keyLog, globalFlags.Defaults().LogLevel)
-	cfg.SetDefault(keyWorkers, globalFlags.Defaults().Child.Workers)
-}
 
 // root command execution
 func rootRunFunc(c *cobra.Command, _ []string) error {
@@ -149,7 +84,10 @@ func emptyRunFunc(c *cobra.Command, _ []string) error {
 	return nil
 }
 
-// RootCmd illustrates the scaffolding of a command tree with explicit storage of the CLI flags and default values.
+// RootCmd illustrates the scaffolding of a command tree without any explicit storage of the CLI flags and default values.
+//
+// TODO: binding a flag to the config should trigger a SetDefault in the config. Problem: should be done before loading,
+// HENCE config loader should be lazy.
 func RootCmd() *cli.Command {
 
 	return cli.NewCommand(

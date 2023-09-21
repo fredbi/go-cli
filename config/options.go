@@ -93,7 +93,7 @@ func WithSuffix(suffix string) Option {
 	}
 }
 
-// WithMute discards any logging occuring inside the config loader.
+// WithMute discards any logging occurring inside the config loader.
 //
 // The default is false.
 //
