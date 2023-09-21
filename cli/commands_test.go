@@ -7,6 +7,7 @@ import (
 
 	"github.com/fredbi/gflag"
 	"github.com/fredbi/gflag/extensions"
+	"github.com/fredbi/go-cli/cli/injectable"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,7 @@ func testRootCommand(t *testing.T, asserter func(*testing.T, *viper.Viper)) *Com
 			Use:   "test",
 			Short: "explores cobra command with flags and config bindings",
 			RunE: func(c *cobra.Command, _ []string) error {
-				cfg := ConfigFromContext(c.Context())
+				cfg := injectable.ConfigFromContext(c.Context(), viper.New)
 				// assertions on flags bound to config
 				asserter(t, cfg)
 

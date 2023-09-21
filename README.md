@@ -218,6 +218,7 @@ func ExampleLoad() {
 	cfg, err := config.Load("dev", config.WithMute(true))
 	if err != nil {
 		err = fmt.Errorf("loading config: %w", err)
+		log.Fatal(err)
 
 		return
 	}

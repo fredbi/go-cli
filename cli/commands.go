@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fredbi/go-cli/cli/injectable"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -32,13 +33,12 @@ func NewCommand(cmd *cobra.Command, opts ...Option) *Command {
 		options: options,
 	}
 
-	if c.config != nil {
-		c.SetContext(ContextWithConfig(context.Background(), c.config))
-	}
+	c.SetContext(c.injectedContext(context.Background()))
 
 	c.pushChildren()
 	c.RegisterFlags()
 
+	// config is a special injected dependency because we can bind it with CLI flags
 	if c.config != nil {
 		c.bindFlagsWithConfig(c.config)
 	}
@@ -56,6 +56,20 @@ func (c *Command) pushChildren() {
 
 		c.Command.AddCommand(sub.Command)
 	}
+}
+
+func (c *Command) injectedContext(ctx context.Context) context.Context {
+	if c.config != nil {
+		injected := injectable.NewConfig(c.config)
+
+		return injected.Context(context.Background())
+	}
+
+	for _, injected := range c.injectables {
+		ctx = injected.Context(ctx)
+	}
+
+	return ctx
 }
 
 // Config returns the viper config registry shared by the command tree.
@@ -165,9 +179,5 @@ func (c *Command) ExecuteWithArgs(args ...string) error {
 
 // ExecuteContext wraps cobra.Command.ExecuteContext() by ensuring the config is in the context.
 func (c *Command) ExecuteContext(ctx context.Context) error {
-	if c.config != nil {
-		ctx = ContextWithConfig(ctx, c.config)
-	}
-
-	return c.Command.ExecuteContext(ctx)
+	return c.Command.ExecuteContext(c.injectedContext(ctx))
 }

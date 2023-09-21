@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/fredbi/gflag"
+	"github.com/fredbi/go-cli/cli/injectable"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -21,11 +22,17 @@ type (
 		flagsToBind           []binding
 		persistentFlagsToBind []binding
 		subs                  []*Command
-		config                *viper.Viper
+
+		// injected dependencies
+		config      *viper.Viper
+		injectables []injectable.ContextInjectable // NOTE: as of go1.20 it remains difficult to use generics here
 	}
 )
 
 // WithConfig adds a viper.Viper configuration to the command tree.
+//
+// The config can be retrieved from the context of the command, using
+// injectable.ConfigFromContext().
 func WithConfig(cfg *viper.Viper) Option {
 	return func(o *options) {
 		o.config = cfg
@@ -113,6 +120,19 @@ func WithSliceFlagVar[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *
 // WithSliceFlagVarP declares a flag of any slice type supported by gflag, with a shorthand name and some options.
 func WithSliceFlagVarP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *[]T, name, shorthand string, defaultValue []T, usage string, opts ...FlagOption) Option {
 	return withAnySliceFlagP(addr, name, shorthand, defaultValue, usage, opts...)
+}
+
+// WithInjectables adds dependencies to be injected in the context of the command.
+//
+// For each injectable, its Context() method will be called in the specified order to enrich the context of the command.
+//
+// NOTE: the config registry is a special dependency because it may bind to CLI flags.
+//
+// Configuration may be injected directly with the more explicit WithConfig() method.
+func WithInjectables[T any](injectables ...injectable.ContextInjectable) Option {
+	return func(o *options) {
+		o.injectables = append(o.injectables, injectables...)
+	}
 }
 
 func withAnyFlagP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr *T, name, shorthand string, defaultValue T, usage string, opts ...FlagOption) Option {

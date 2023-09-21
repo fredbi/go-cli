@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/fredbi/go-cli/cli"
+	"github.com/fredbi/go-cli/cli/injectable"
 	"github.com/fredbi/go-cli/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -100,10 +101,8 @@ func (f cliFlags) applyDefaults(cfg *viper.Viper) {
 
 // root command execution
 func rootRunFunc(c *cobra.Command, _ []string) error {
-	cfg := cli.ConfigFromContext(c.Context())
-	if cfg == nil {
-		cli.Die("failed to retrieve config")
-	}
+	// retrieve injected dependencies, create new empty viper registry if unresolved
+	cfg := injectable.ConfigFromContext(c.Context(), viper.New)
 
 	fmt.Println(
 		"example called\n",
@@ -123,7 +122,7 @@ func rootRunFunc(c *cobra.Command, _ []string) error {
 
 // child command execution
 func childRunFunc(c *cobra.Command, _ []string) error {
-	cfg := cli.ConfigFromContext(c.Context())
+	cfg := injectable.ConfigFromContext(c.Context(), viper.New)
 
 	fmt.Println(
 		"subcommand called\n",
@@ -142,7 +141,7 @@ func childRunFunc(c *cobra.Command, _ []string) error {
 }
 
 func emptyRunFunc(c *cobra.Command, _ []string) error {
-	cfg := cli.ConfigFromContext(c.Context())
+	cfg := injectable.ConfigFromContext(c.Context(), viper.New)
 
 	fmt.Println("command called:", c.Name())
 	fmt.Println("injected config:", cfg.AllSettings())

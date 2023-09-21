@@ -2,18 +2,24 @@ name: Run unit tests
 on:
   pull_request:
   push:
+    tags:
+      - v*
     branches:
       - master
 jobs:
   test_config:
-    runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      matrix:
+        go_version: ['1.20','1.21']
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
       - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go_version }}
+          stable: true
+          check-latest: true
       - name: Test config package
         run: |
           DEPS="$(go list -deps ./...|grep 'fredbi/go-cli')"
