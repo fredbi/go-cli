@@ -84,6 +84,7 @@ func emptyRunFunc(c *cobra.Command, _ []string) error {
 	return nil
 }
 
+// nolint: dupl
 // RootCmd illustrates the scaffolding of a command tree without any explicit storage of the CLI flags and default values.
 //
 // TODO: binding a flag to the config should trigger a SetDefault in the config. Problem: should be done before loading,

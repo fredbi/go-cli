@@ -75,6 +75,7 @@ func (f cliFlags) applyDefaults(cfg *viper.Viper) {
 	cfg.SetDefault(keyWorkers, globalFlags.Defaults().Child.Workers)
 }
 
+// nolint: dupl
 // RootCmdWithGlobal illustrates the scaffolding of a command tree with explicit storage
 // of the CLI flags and default values.
 //
