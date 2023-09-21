@@ -1,8 +1,12 @@
 ![Lint](https://github.com/fredbi/go-cli/actions/workflows/01-golang-lint.yaml/badge.svg)
 ![CI](https://github.com/fredbi/go-cli/actions/workflows/02-test.yaml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/fredbi/go-cli/badge.svg)](https://coveralls.io/github/fredbi/go-cli)
+![Vulnerability Check](https://github.com/fredbi/go-cli/actions/workflows/03-govulncheck.yaml/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/fredbi/go-cli)](https://goreportcard.com/report/github.com/fredbi/go-cli)
+
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/fredbi/go-cli)
 [![Go Reference](https://pkg.go.dev/badge/github.com/fredbi/go-cli.svg)](https://pkg.go.dev/github.com/fredbi/go-cli)
+[![license](http://img.shields.io/badge/license/License-Apache-yellow.svg)](https://raw.githubusercontent.com/fredbi/go-cli/master/LICENSE.md)
 
 # go-cli
 
@@ -12,58 +16,13 @@ This repo exposes a few utilities to
 on top of these 3 great libraries:
 `github.com/spf13/cobra`, `github.com/spf13/viper` and `github.com/spf13/pflag`.
 
-The config part is based on some seminal past work by @casualjim. I am grateful to him for his much inspiring code.
+The config part is based on some seminal past work by [@casualjim](https://github.com/casualjim/).
+I am grateful to him for his much inspiring code.
 
-**TL,DR**: this is not yet another CLI-building library, rather a mere wrapper on top of `cobra`
+**TL,DR**: this is not yet another CLI-building library, but rather a mere wrapper on top of `cobra`
 to use that great lib with a better style (IMHO).
 
 ## CLI
-
-### Goals
-
-The `cli` packages proposes an approach to building command-line binaries on top of `github.com/spf13/cobra`.
-
-> There are a few great existing libraries around to build a CLI (see below, a few that I like).
-> `cobra` stands out as the richest and most flexible,
-> as CLIs are entirely built programmatically.
-
-`cobra` is great, but building CLIs again and again, I came to identify a few repetitive boiler-plate patterns.
-
-So this module reflects my opinions about how to build more elegant CLIs, with more expressive code and less tinkering.
-
-Feedback is always welcome, as opinions may evolve over time...
-Feel free to post issues to leave your comments and/or proposals.
-
-#### Desirable features
-
-* a typical CLI should interact easily with config files (see [configs](#Configuration)), but not _always_
-  * make all config exposed through a `viper` registry
-  * leave developers a free-hand if they want to use all the knobs and features proposed by `cobra`
-
-* it should be easier to interact with command line flags of various types
-  * simple, declarative registration and binding of flags to config
-  * allow CLI flags to override this config (12(factors))
-  * includes slices, maps and custom flag types -> deferred to `github.com/fredbi/gflag`
-
-* it should be easier to declare defaults (for flags, for config)
-
-* it should be easier to inject external dependencies into the commands tree (config, logger, etc)
-
-#### Code style goals
-
-* adopt a functional style (some would say DSL-like), with builder functions for CLI components 
-* the tree-like structure of commands should appear visually and obviously in the source code
-* remove the need for the typical `init()` to perform all this initialization
-* remove the need to use package-level variables
-* remove the boiler-plate code needed to register, then bind the flags to the config registry
-* remove the cognitive burden of remembering all the `GetString()`, `GetBool()` etc methods: `go` now has generics for that
-* favor the use of generics exposed by `github.com/fredbi/gflags`, but don't require it
-* design with testability in mind: CLI's should be testable with reasonable code coverage
-
-#### Non-goals
-
-* don't use struct tags: we want to stick to the programmatic approach - there are other great libraries around following the struct tags approach
-* don't use codegen: we want our code to be readable, not generated
 
 ### Example for CLI
 
@@ -94,7 +53,7 @@ func RootCmd() *cli.Command {
 			RunE:  rootRunFunc,
 		},
         // flag bindings
-		cli.WithFlag("dry-run", false, "Dry run",
+		cli.WithFlag("dry-run", false, "Dry run", // {flag name}, {flag type inferred from the default value}, {flag help description}
 			cli.BindFlagToConfig(keyDry), // flag bindings to a viper config
 		),
 		cli.WithPersistentFlag("log-level", "info", "Controls logging verbosity",
@@ -128,6 +87,50 @@ func main() {
 	}
 }
 ```
+### Goals
+
+The `cli` packages proposes an approach to building command-line binaries on top of `github.com/spf13/cobra`.
+
+> There are a few great existing libraries around to build a CLI (see below, a few that I like).
+> `cobra` stands out as the richest and most flexible,
+> as CLIs are entirely built programmatically.
+
+`cobra` is great, but building CLIs again and again, I came to identify a few repetitive boiler-plate patterns.
+
+So this module reflects my opinions about how to build more elegant CLIs, with more expressive code and less tinkering.
+
+Feedback is always welcome, as opinions may evolve over time...
+Feel free to post issues to leave your comments and/or proposals.
+
+#### Desirable features
+
+* a typical CLI should interact easily with config files (see [Configuration](#Configuration)), but not _always_
+  * expose all config through a `viper` registry
+  * leave developers a free-hand on all the knobs and features proposed by `cobra`
+* it should be easier to interact with command line flags of various types
+  * simple, declarative registration and binding of flags to config
+  * should abstract away the tedious and error prone steps for the registration of flags, binding & defaults
+  * allow CLI flags to override this config (12-factors)
+  * includes slices, maps and custom flag types (delegated to `github.com/fredbi/gflag`)
+* it should be easier to declare defaults (for flags, for config)
+* it should be easier to inject external dependencies into the commands tree (config, logger, etc)
+
+#### Code style goals
+
+* adopt a functional style (some would say DSL-like), with builder functions for CLI components 
+* the tree-like structure of commands should appear visually and obviously in the source code
+* remove the need for the typical `init()` to perform all this initialization
+* remove the need to use package-level variables
+* remove the boiler-plate code needed to register, then bind the flags to the config registry
+* remove the cognitive burden of remembering all the `GetString()`, `GetBool()` etc methods: `go` now has generics for that
+* favor the use of generics exposed by `github.com/fredbi/gflags`, but don't require it
+* design with testability in mind: CLI's should be testable with reasonable code coverage
+
+#### Non-goals
+
+* don't use struct tags: we want to stick to the programmatic approach - there are other great libraries around following the struct tags approach
+* don't use codegen: we want our code to be readable, not generated
+
 
 ## Configuration
 
@@ -137,6 +140,44 @@ It exposes configuration loaders that know about the context
 (e.g a deployment environment such as `dev`, `production`) and secrets.
 
 Although developped primarily to serve a CLI, this package may be used independently.
+
+### Example: loading a config
+
+```go
+import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/fredbi/go-cli/config"
+)
+
+func ExampleLoad() {
+	here := mustCwd()
+	os.Setenv("CONFIG_DIR", filepath.Join(here, "examples"))
+
+	// load and merge configuration files for environment "dev"
+	cfg, err := config.Load("dev", config.WithMute(true))
+	if err != nil {
+		err = fmt.Errorf("loading config: %w", err)
+		log.Fatal(err)
+
+		return
+	}
+
+	fmt.Println(cfg.AllSettings())
+}
+
+func mustCwd() string {
+	here, err := os.Getwd()
+	if err != nil {
+		err = fmt.Errorf("get current working dir: %w", err)
+		log.Fatal(err)
+	}
+
+	return here
+}
+```
 
 ### Goals
 
@@ -198,44 +239,6 @@ Applications are able to consume the settings from a single viper configuration 
 Supported format: YAML, JSON
 
 Supported file extensions: "yml", "yaml", "json"
-
-### Example: loading a config
-
-```go
-import (
-	"fmt"
-	"log"
-	"os"
-
-	"github.com/fredbi/go-cli/config"
-)
-
-func ExampleLoad() {
-	here := mustCwd()
-	os.Setenv("CONFIG_DIR", filepath.Join(here, "examples"))
-
-	// load and merge configuration files for environment "dev"
-	cfg, err := config.Load("dev", config.WithMute(true))
-	if err != nil {
-		err = fmt.Errorf("loading config: %w", err)
-		log.Fatal(err)
-
-		return
-	}
-
-	fmt.Println(cfg.AllSettings())
-}
-
-func mustCwd() string {
-	here, err := os.Getwd()
-	if err != nil {
-		err = fmt.Errorf("get current working dir: %w", err)
-		log.Fatal(err)
-	}
-
-	return here
-}
-```
 
 See other [examples](.config/examples_test.go)
 
