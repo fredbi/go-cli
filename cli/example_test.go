@@ -92,25 +92,25 @@ func RootCmd() *cli.Command {
 		// declaring flags with generics: flag type is inferred;
 		// in this setup, no need to maintain a global variable to hold the state of flags:
 		// all flags are bound to the config.
-		cli.WithFlagVar(nil, "dry-run", false, "Dry run",
+		cli.WithFlag("dry-run", false, "Dry run",
 			cli.BindFlagToConfig(keyDry),
 		),
-		cli.WithFlagVar(nil, "log-level", "info", "Controls logging verbosity",
+		cli.WithFlag("log-level", "info", "Controls logging verbosity",
 			cli.FlagIsPersistent(),
 			cli.BindFlagToConfig(keyLog),
 		),
-		cli.WithFlagVar(nil, "url", "https://www.example.com", "The URL to connect to",
+		cli.WithFlag("url", "https://www.example.com", "The URL to connect to",
 			cli.FlagIsPersistent(),
 			cli.BindFlagToConfig(keyURL),
 		),
-		cli.WithFlagVarP(nil, "parallel", "p", 2, "Degree of parallelism",
+		cli.WithFlagP("parallel", "p", 2, "Degree of parallelism",
 			cli.FlagIsPersistent(),
 			cli.BindFlagToConfig(keyParallel),
 		),
 		// example with RegisterFunc, useful for maximum flexibility.
 		cli.WithFlagFunc(func(flags *pflag.FlagSet) string {
 			const userFlag = "user"
-			flags.StringVar(&globalFlags.User, userFlag, "", "Originating user")
+			flags.String(userFlag, "", "Originating user")
 
 			return userFlag
 		},
@@ -128,7 +128,7 @@ func RootCmd() *cli.Command {
 					Long:  "...",
 					RunE:  childRunFunc,
 				},
-				cli.WithFlagVar(&globalFlags.Child.Workers, "workers", 5, "Number of workers threads",
+				cli.WithFlag("workers", 5, "Number of workers threads",
 					cli.FlagIsRequired(),
 					cli.BindFlagToConfig(keyWorkers),
 				),
@@ -153,6 +153,8 @@ func RootCmd() *cli.Command {
 			),
 		),
 		// apply config to the command tree
+		// TODO: should find a way to apply defaults to config
+		// issue here: viper defaults should be applied before loading the config
 		cli.WithConfig(cli.Config(globalFlags.applyDefaults)),
 	)
 }
