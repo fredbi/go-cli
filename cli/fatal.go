@@ -1,12 +1,17 @@
 package cli
 
 import (
+	"fmt"
 	"log"
 )
 
 var die = log.Fatalf
 
-// SetDie alters the package level log.Fatalf implementation.
+// SetDie alters the package level log.Fatalf implementation,
+// to be used by Die(sring, ...any).
+//
+// If fatalFunc is set to nil, calls to Die will issue their message
+// with panic instead of log.Fatalf.
 //
 // This should be used for testing only.
 func SetDie(fatalFunc func(string, ...any)) {
@@ -15,12 +20,22 @@ func SetDie(fatalFunc func(string, ...any)) {
 
 // Die exits the current process with some final croak.
 //
-// This wraps log.Fatal for convenient testing.
+// By default, Die is a wrapper around log.Fatalf.
+//
+// Use SetDie to alter this behavior (e.g. for mocking).
+// SetDie(nil) will make Die(format, args...) equivalent to
+// panic(fmt.Sprintf(format, args...)).
+//
+// This wraps log.Fatal, essentially for testing purpose.
 func Die(format string, args ...any) {
+	if die == nil {
+		panic(fmt.Sprintf(format, args...))
+	}
+
 	die(format, args...)
 }
 
-// Must panic on error.
+// Must panic on error
 func Must(err error) {
 	must(err)
 }

@@ -10,7 +10,7 @@ jobs:
   test_config:
     strategy:
       matrix:
-        go_version: ['1.20','1.21']
+        go_version: ['1.19','1.20','1.21']
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:

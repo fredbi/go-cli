@@ -18,7 +18,8 @@ func MustBindPFlag(cfg *viper.Viper, key string, flag *pflag.Flag) {
 
 // MustBindFromFlagSet binds a key in a *viper.Viper registry to command-line flag found in a flag set (*pflag.FlagSet).
 //
-// Dies on error. This happens if the flag set is nil or if the requested flag has not been registered
+// Dies on error.
+// This happens if the flag to be set is nil or if the requested flag has not been registered
 // in the flag set yet.
 func MustBindFromFlagSet(cfg *viper.Viper, key, flagName string, flags *pflag.FlagSet) {
 	mustBindFromFlagSet(cfg, key, flagName, flags)

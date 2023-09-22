@@ -58,6 +58,28 @@ func WithFlagFunc(regFunc RegisterFunc, opts ...FlagOption) Option {
 	}
 }
 
+// WithBindFlagsToConfig binds all (non persistent) flags in the provided map to a config key.
+//
+// The map is like map[string][string]{"flag-name": "viper-key"}
+func WithBindFlagsToConfig(bindings map[string]string) Option {
+	return func(o *options) {
+		for name, configKey := range bindings {
+			o.flagsToBind = append(o.flagsToBind, binding{name: name, key: configKey})
+		}
+	}
+}
+
+// WithBindPersistentFlagsToConfig binds all persistent flags in the provided map to a config key.
+//
+// The map is like map[string][string]{"flag-name": "viper-key"}
+func WithBindPersistentFlagsToConfig(bindings map[string]string) Option {
+	return func(o *options) {
+		for name, configKey := range bindings {
+			o.persistentFlagsToBind = append(o.persistentFlagsToBind, binding{name: name, key: configKey})
+		}
+	}
+}
+
 /*
 // TODO: with logger
 // WithLogFactory injects a log factory into the command tree.

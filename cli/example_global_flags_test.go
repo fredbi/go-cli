@@ -2,6 +2,7 @@
 package cli_test
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -84,9 +85,9 @@ func RootCmdWithGlobal() *cli.Command {
 	return cli.NewCommand(
 		&cobra.Command{
 			Use:   "example",
-			Short: "examplifies a cobra command",
+			Short: "examplifies a cobra command with global flags",
 			Long:  "...",
-			RunE:  rootRunFunc,
+			RunE:  rootGlobalRunFunc,
 		},
 		cli.WithFlagVar(&globalFlags.DryRun, "dry-run", globalFlags.Defaults().DryRun, "Dry run",
 			cli.BindFlagToConfig(keyDry),
@@ -119,7 +120,7 @@ func RootCmdWithGlobal() *cli.Command {
 					Use:   "child",
 					Short: "sub-command example",
 					Long:  "...",
-					RunE:  childRunFunc,
+					RunE:  childGlobalRunFunc,
 				},
 				cli.WithFlagVar(&globalFlags.Child.Workers, "workers", globalFlags.Defaults().Child.Workers, "Number of workers threads",
 					cli.FlagIsRequired(),
@@ -148,4 +149,90 @@ func RootCmdWithGlobal() *cli.Command {
 		// apply config to the command tree
 		cli.WithConfig(cli.Config(globalFlags.applyDefaults)),
 	)
+}
+
+// root command execution
+func rootGlobalRunFunc(c *cobra.Command, args []string) error {
+	err := rootRunFunc(c, args)
+
+	fmt.Println(
+		"global flags values evaluated by root\n",
+		fmt.Sprintf("%#v", globalFlags),
+	)
+
+	return err
+}
+
+// child command execution
+func childGlobalRunFunc(c *cobra.Command, args []string) error {
+	err := childRunFunc(c, args)
+
+	fmt.Println(
+		"global flags values evaluated by child\n",
+		fmt.Sprintf("%#v", globalFlags),
+	)
+
+	return err
+}
+
+func Example_globalRootCmd() {
+	rootCmd := RootCmdWithGlobal()
+	rootCmd.SetArgs([]string{
+		"--dry-run",
+		"--log-level",
+		"debug",
+		"--parallel",
+		"15",
+		"--user",
+		"fred",
+	},
+	)
+
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal("executing:", err)
+	}
+
+	fmt.Println("done")
+
+	// Output:
+	// example called
+	//  URL config: https://www.example.com
+	//  log level config: debug
+	//  parallel config: 15
+	//  user config: fred
+	//
+	// global flags values evaluated by root
+	//  cli_test.cliFlags{DryRun:true, URL:"https://www.example.com", Parallel:15, User:"fred", LogLevel:"debug", Child:cli_test.childFlags{Workers:5}}
+	// done
+}
+
+// Example_childCmd runs a child command.
+func Example_globalChildCmd() {
+	rootCmd := RootCmdWithGlobal()
+	if err := rootCmd.ExecuteWithArgs(
+		"child",
+		"--parallel",
+		"20",
+		"--url",
+		"https://www.zorg.com",
+		"--user",
+		"zorg",
+		"--workers",
+		"12",
+	); err != nil {
+		log.Fatal("executing:", err)
+	}
+
+	fmt.Println("done")
+
+	// Output:
+	// subcommand called
+	//  URL config: https://www.zorg.com
+	//  parallel config: 20
+	//  user config: zorg
+	//  workers config: 12
+	//
+	// global flags values evaluated by child
+	//  cli_test.cliFlags{DryRun:false, URL:"https://www.zorg.com", Parallel:20, User:"zorg", LogLevel:"info", Child:cli_test.childFlags{Workers:12}}
+	// done
 }

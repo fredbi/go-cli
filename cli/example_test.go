@@ -47,11 +47,6 @@ func rootRunFunc(c *cobra.Command, _ []string) error {
 		fmt.Sprintf("user config: %s\n", cfg.GetString(keyUser)),
 	)
 
-	fmt.Println(
-		"global flags values evaluated by root\n",
-		fmt.Sprintf("%#v", globalFlags),
-	)
-
 	return nil
 }
 
@@ -67,14 +62,10 @@ func childRunFunc(c *cobra.Command, _ []string) error {
 		fmt.Sprintf("workers config: %s\n", cfg.GetString(keyWorkers)),
 	)
 
-	fmt.Println(
-		"global flags values evaluated by child\n",
-		fmt.Sprintf("%#v", globalFlags),
-	)
-
 	return nil
 }
 
+// noop command execution
 func emptyRunFunc(c *cobra.Command, _ []string) error {
 	cfg := injectable.ConfigFromContext(c.Context(), viper.New)
 
@@ -89,8 +80,8 @@ func emptyRunFunc(c *cobra.Command, _ []string) error {
 //
 // TODO: binding a flag to the config should trigger a SetDefault in the config. Problem: should be done before loading,
 // HENCE config loader should be lazy.
+// TODO: explicit BindEnv for env variables (default is auto)
 func RootCmd() *cli.Command {
-
 	return cli.NewCommand(
 		&cobra.Command{
 			Use:   "example",
@@ -98,31 +89,37 @@ func RootCmd() *cli.Command {
 			Long:  "...",
 			RunE:  rootRunFunc,
 		},
-		cli.WithFlagVar(&globalFlags.DryRun, "dry-run", globalFlags.Defaults().DryRun, "Dry run",
+		// declaring flags with generics: flag type is inferred;
+		// in this setup, no need to maintain a global variable to hold the state of flags:
+		// all flags are bound to the config.
+		cli.WithFlagVar(nil, "dry-run", false, "Dry run",
 			cli.BindFlagToConfig(keyDry),
 		),
-		cli.WithFlagVar(&globalFlags.LogLevel, "log-level", globalFlags.Defaults().LogLevel, "Controls logging verbosity",
+		cli.WithFlagVar(nil, "log-level", "info", "Controls logging verbosity",
 			cli.FlagIsPersistent(),
 			cli.BindFlagToConfig(keyLog),
 		),
-		cli.WithFlagVar(&globalFlags.URL, "url", globalFlags.Defaults().URL, "The URL to connect to",
+		cli.WithFlagVar(nil, "url", "https://www.example.com", "The URL to connect to",
 			cli.FlagIsPersistent(),
 			cli.BindFlagToConfig(keyURL),
 		),
-		cli.WithFlagVarP(&globalFlags.Parallel, "parallel", "p", globalFlags.Defaults().Parallel, "Degree of parallelism",
+		cli.WithFlagVarP(nil, "parallel", "p", 2, "Degree of parallelism",
 			cli.FlagIsPersistent(),
 			cli.BindFlagToConfig(keyParallel),
 		),
 		// example with RegisterFunc, useful for maximum flexibility.
 		cli.WithFlagFunc(func(flags *pflag.FlagSet) string {
 			const userFlag = "user"
-			flags.StringVar(&globalFlags.User, userFlag, globalFlags.Defaults().User, "Originating user")
+			flags.StringVar(&globalFlags.User, userFlag, "", "Originating user")
+
 			return userFlag
 		},
 			cli.FlagIsPersistent(),
 			cli.FlagIsRequired(),
 			cli.BindFlagToConfig(keyUser),
 		),
+		// TODO: example with a gflag
+		// TODO: example with non flags args (e.g. use regular Cobra)
 		cli.WithSubCommands(
 			cli.NewCommand(
 				&cobra.Command{
@@ -131,7 +128,7 @@ func RootCmd() *cli.Command {
 					Long:  "...",
 					RunE:  childRunFunc,
 				},
-				cli.WithFlagVar(&globalFlags.Child.Workers, "workers", globalFlags.Defaults().Child.Workers, "Number of workers threads",
+				cli.WithFlagVar(&globalFlags.Child.Workers, "workers", 5, "Number of workers threads",
 					cli.FlagIsRequired(),
 					cli.BindFlagToConfig(keyWorkers),
 				),
@@ -224,8 +221,6 @@ func Example_rootCmd() {
 	//  parallel config: 15
 	//  user config: fred
 	//
-	// global flags values evaluated by root
-	//  cli_test.cliFlags{DryRun:true, URL:"https://www.example.com", Parallel:15, User:"fred", LogLevel:"debug", Child:cli_test.childFlags{Workers:5}}
 	// done
 }
 
@@ -255,10 +250,7 @@ func Example_childCmd() {
 	//  user config: zorg
 	//  workers config: 12
 	//
-	// global flags values evaluated by child
-	//  cli_test.cliFlags{DryRun:false, URL:"https://www.zorg.com", Parallel:20, User:"zorg", LogLevel:"info", Child:cli_test.childFlags{Workers:12}}
 	// done
-
 }
 
 // Example_printCmd prints out the tree structure of the root command.
