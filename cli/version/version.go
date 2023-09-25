@@ -37,8 +37,17 @@ func Resolve() BuildInfo {
 
 	if buildDate == "" {
 		buildInfo.Version = goInfo.Main.Version
-		buildInfo.Commit = fmt.Sprintf("unknown, mod sum: %q", goInfo.Main.Sum)
-		buildInfo.Date = "(unknown)"
+		if buildRevision := lookupBuildSettings(buildInfo.Settings, "vcs.revision"); buildRevision != "" {
+			buildInfo.Commit = buildRevision
+		} else {
+			buildInfo.Commit = fmt.Sprintf("unknown, mod sum: %q", goInfo.Main.Sum)
+		}
+
+		if buildTime := lookupBuildSettings(buildInfo.Settings, "vcs.time"); buildTime != "" {
+			buildInfo.Date = buildTime
+		} else {
+			buildInfo.Date = "(unknown)"
+		}
 	} else {
 		buildInfo.Version = buildVersion
 		buildInfo.Commit = buildCommit
@@ -46,4 +55,20 @@ func Resolve() BuildInfo {
 	}
 
 	return buildInfo
+}
+
+func lookupBuildSettings(settings []debug.BuildSetting, key string) string {
+	/*
+		Typical settings:
+				build	vcs.revision=35798d3d1de0ebb1b241059f74d31486c745c7a4
+				build	vcs.time=2023-09-25T13:22:02Z
+				build	vcs.modified=true
+	*/
+	for _, setting := range settings {
+		if setting.Key == key {
+			return setting.Value
+		}
+	}
+
+	return ""
 }
