@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"runtime/debug"
 	"strconv"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -19,6 +17,8 @@ type (
 		Settings   []debug.BuildSetting `json:"-"`
 	}
 
+	// buildSettings collect metadata of interest from the
+	// []debug.BuildSetting collection
 	buildSettings struct {
 		Commit     string
 		Date       string
@@ -27,57 +27,60 @@ type (
 )
 
 var (
-	// Populated by your build system at release build time
 	buildGoVersion = "unknown"
 	buildVersion   = "master"
 	buildCommit    = "?"
 	buildDate      = ""
 )
 
+// Resolve build information.
+//
+// There are 2 possible sources to resolve version information.
+//
+// 1. It may be populated by your build system at release build time
+// e.g. go build -ldflags="-X 'github.com/fredbi/go-cli/cli/version.buildVersion=v1.0.0'"
+//
+// For more information, see this excellent tutorial:
+// https://www.digitalocean.com/community/tutorials/using-ldflags-to-set-version-information-for-go-applications
+//
+// 2. It may be populated by the go runtime, collecting metadata from the build.
 func Resolve() BuildInfo {
 	var buildInfo BuildInfo
 
 	goInfo, isAvailable := debug.ReadBuildInfo()
 	if isAvailable {
 		buildInfo.GoVersion = goInfo.GoVersion
-		spew.Dump("goInfo: %#v\n", goInfo)
-		spew.Dump("goModuleInfo: %#v\n", goInfo.Main)
 	} else {
 		buildInfo.GoVersion = buildGoVersion
 	}
 
-	if buildDate == "" {
-		settings := lookupBuildSettings(buildInfo.Settings)
-
-		buildInfo.Version = goInfo.Main.Version
-		if settings.Commit != "" {
-			buildInfo.Commit = settings.Commit
-			buildInfo.IsModified = settings.IsModified
-		} else {
-			buildInfo.Commit = fmt.Sprintf("unknown, mod sum: %q", goInfo.Main.Sum)
-		}
-
-		if settings.Date != "" {
-			buildInfo.Date = settings.Date
-		} else {
-			buildInfo.Date = "(unknown)"
-		}
-	} else {
+	if buildDate != "" {
 		buildInfo.Version = buildVersion
 		buildInfo.Commit = buildCommit
 		buildInfo.Date = buildDate
+
+		return buildInfo
+	}
+
+	settings := lookupBuildSettings(goInfo.Settings)
+	buildInfo.Version = goInfo.Main.Version
+	if settings.Commit != "" {
+		buildInfo.Commit = settings.Commit
+		buildInfo.IsModified = settings.IsModified
+	} else {
+		buildInfo.Commit = fmt.Sprintf("unknown, mod sum: %q", goInfo.Main.Sum)
+	}
+
+	if settings.Date != "" {
+		buildInfo.Date = settings.Date
+	} else {
+		buildInfo.Date = "(unknown)"
 	}
 
 	return buildInfo
 }
 
 func lookupBuildSettings(settings []debug.BuildSetting) buildSettings {
-	/*
-		Typical settings:
-				build	vcs.revision=35798d3d1de0ebb1b241059f74d31486c745c7a4
-				build	vcs.time=2023-09-25T13:22:02Z
-				build	vcs.modified=true
-	*/
 	output := buildSettings{}
 
 	for _, setting := range settings {
