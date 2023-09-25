@@ -2,8 +2,9 @@ package version
 
 import (
 	"fmt"
-	"log"
 	"runtime/debug"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // BuildInfo holds versioning information
@@ -29,7 +30,7 @@ func Resolve() BuildInfo {
 	goInfo, isAvailable := debug.ReadBuildInfo()
 	if isAvailable {
 		buildInfo.GoVersion = goInfo.GoVersion
-		log.Printf("settings: %#v\n", buildInfo.Settings)
+		spew.Dump("goInfo: %#v\n", goInfo)
 	} else {
 		buildInfo.GoVersion = buildGoVersion
 	}
