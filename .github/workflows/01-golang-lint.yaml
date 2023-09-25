@@ -16,7 +16,6 @@ jobs:
     steps:
       - uses: actions/setup-go@v4
         with:
-          stable: true
           check-latest: true
       - uses: actions/checkout@v3
       - name: golangci-lint
