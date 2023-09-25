@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"encoding/json"
+
 	"github.com/fredbi/gflag"
 	"github.com/fredbi/go-cli/cli/injectable"
+	"github.com/fredbi/go-cli/cli/version"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -25,6 +28,7 @@ type (
 		flagsToBind           []binding
 		persistentFlagsToBind []binding
 		subs                  []*Command
+		withVersion           func() string
 
 		// injected dependencies
 		config      *viper.Viper
@@ -39,6 +43,27 @@ type (
 func WithConfig(cfg *viper.Viper) Option {
 	return func(o *options) {
 		o.config = cfg
+	}
+}
+
+// WithVersion wires a "--version" flag from a function evaluated at command construction time.
+func WithVersion(versionFunc func() string) Option {
+	return func(o *options) {
+		o.withVersion = versionFunc
+	}
+}
+
+// WithAutoVersion wires a "--version" flag using version.Resolve().
+//
+// This collects versioning from package-level variables set at build time OR
+// go module metadata.
+func WithAutoVersion(versionFunc func() string) Option {
+	return func(o *options) {
+		o.withVersion = func() string {
+			jazon, _ := json.Marshal(version.Resolve())
+
+			return string(jazon)
+		}
 	}
 }
 

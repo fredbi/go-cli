@@ -41,6 +41,10 @@ func NewCommand(cmd *cobra.Command, opts ...Option) *Command {
 		c.bindFlagsWithConfig(c.config)
 	}
 
+	if c.withVersion != nil {
+		c.Version = c.withVersion()
+	}
+
 	return c
 }
 
