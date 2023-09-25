@@ -92,19 +92,16 @@ func RootCmd() *cli.Command {
 		// declaring flags with generics: the flag type is inferred;
 		// in this setup, no need to maintain a global variable to hold the state of flags:
 		// all flags are bound to the config.
-		cli.WithFlag("dry-run", false, "Dry run"), // cli.BindFlagToConfig(keyDry),
+		cli.WithFlag("dry-run", false, "Dry run"),
 
 		cli.WithFlag("log-level", "info", "Controls logging verbosity",
 			cli.FlagIsPersistent(),
-			// cli.BindFlagToConfig(keyLog),
 		),
 		cli.WithFlag("url", "https://www.example.com", "The URL to connect to",
 			cli.FlagIsPersistent(),
-			// cli.BindFlagToConfig(keyURL),
 		),
 		cli.WithFlagP("parallel", "p", 2, "Degree of parallelism",
 			cli.FlagIsPersistent(),
-			// cli.BindFlagToConfig(keyParallel),
 		),
 		// example with RegisterFunc, useful for maximum flexibility.
 		cli.WithFlagFunc(func(flags *pflag.FlagSet) string {
@@ -115,7 +112,6 @@ func RootCmd() *cli.Command {
 		},
 			cli.FlagIsPersistent(),
 			cli.FlagIsRequired(),
-			// cli.BindFlagToConfig(keyUser),
 		),
 		// TODO: example with a gflag
 		// TODO: example with non flags args (e.g. use regular Cobra)
