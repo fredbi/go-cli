@@ -41,6 +41,7 @@ type (
 
 const (
 	ctxConfig commandCtxKey = iota + 1
+	ctxSLogger
 )
 
 var _ ContextInjectable = &Config{}

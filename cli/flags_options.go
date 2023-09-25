@@ -1,6 +1,8 @@
 package cli
 
 type (
+	FlagOption func(*flagOption)
+
 	flagOption struct {
 		fn         RegisterFunc
 		required   bool

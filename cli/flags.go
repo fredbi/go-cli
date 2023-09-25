@@ -5,10 +5,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type (
-	FlagOption func(*flagOption)
-)
-
 // MustBindPlag binds a key in a *viper.Viper registry to a command-line flag (*pflag.Flag).
 //
 // Dies on error. This happens if the flag is nil.

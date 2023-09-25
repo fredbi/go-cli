@@ -11,14 +11,12 @@ import (
 )
 
 type (
-	// Command wraps a *cobra.Command with some options to register and bind flags more easily.
+	// Command wraps a *cobra.Command with some options to register and bind flags
+	// with a functional style.
 	Command struct {
 		*cobra.Command
 		*options
 	}
-
-	// Option configures a Command.
-	Option func(*options)
 )
 
 // NewCommand builds a new Command wrapping a *cobra.Command.

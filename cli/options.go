@@ -8,6 +8,9 @@ import (
 )
 
 type (
+	// Option configures a Command.
+	Option func(*options)
+
 	// RegisterFunc registers a flag to a provided pflag.FlagSet and returns the flag name.
 	RegisterFunc func(*pflag.FlagSet) string
 
@@ -72,6 +75,8 @@ func WithBindFlagsToConfig(bindings map[string]string) Option {
 // WithBindPersistentFlagsToConfig binds all persistent flags in the provided map to a config key.
 //
 // The map is like map[string][string]{"flag-name": "viper-key"}
+//
+// TODO: should add a way to automatically determine if the flag is persistent or not.
 func WithBindPersistentFlagsToConfig(bindings map[string]string) Option {
 	return func(o *options) {
 		for name, configKey := range bindings {
@@ -79,16 +84,6 @@ func WithBindPersistentFlagsToConfig(bindings map[string]string) Option {
 		}
 	}
 }
-
-/*
-// TODO: with logger
-// WithLogFactory injects a log factory into the command tree.
-func WithLogger(logFactory log.Factory) Option {
-	return func(o *options) {
-		o.logFactory = logFactory
-	}
-}
-*/
 
 // WithFlag declares a flag of any type supported by gflag, with some options.
 //
@@ -151,7 +146,7 @@ func WithSliceFlagVarP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr 
 // NOTE: the config registry is a special dependency because it may bind to CLI flags.
 //
 // Configuration may be injected directly with the more explicit WithConfig() method.
-func WithInjectables[T any](injectables ...injectable.ContextInjectable) Option {
+func WithInjectables(injectables ...injectable.ContextInjectable) Option {
 	return func(o *options) {
 		o.injectables = append(o.injectables, injectables...)
 	}

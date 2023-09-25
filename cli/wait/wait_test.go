@@ -1,4 +1,4 @@
-package containers
+package wait
 
 import (
 	"os"
@@ -18,7 +18,7 @@ func TestContainer(t *testing.T) {
 	t.Run("containerDone should create file", func(t *testing.T) {
 		touchFile := filepath.Join(touchDir, "file")
 
-		require.NoError(t, ContainerDone(touchFile))
+		require.NoError(t, Done(touchFile))
 
 		_, err = os.Stat(touchFile)
 		require.NoError(t, err)
@@ -27,7 +27,7 @@ func TestContainer(t *testing.T) {
 	t.Run("containerDone should create dir and file", func(t *testing.T) {
 		touchFile := filepath.Join(touchDir, "level", "file")
 
-		require.NoError(t, ContainerDone(touchFile))
+		require.NoError(t, Done(touchFile))
 
 		_, err = os.Stat(touchFile)
 		require.NoError(t, err)

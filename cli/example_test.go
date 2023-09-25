@@ -30,8 +30,8 @@ const (
 	keyURL      = "app.url"
 	keyParallel = "app.parallel"
 	keyUser     = "app.user"
-	keyWorkers  = "app.child.workers"
 	keyDry      = "run.dryRun"
+	keyWorkers  = "app.child.workers"
 )
 
 // root command execution
@@ -80,7 +80,7 @@ func emptyRunFunc(c *cobra.Command, _ []string) error {
 //
 // TODO: binding a flag to the config should trigger a SetDefault in the config. Problem: should be done before loading,
 // HENCE config loader should be lazy.
-// TODO: explicit BindEnv for env variables (default is auto)
+// TODO: explicit BindEnv for env variables (default is auto) => done with Config pkg. Provide example.
 func RootCmd() *cli.Command {
 	return cli.NewCommand(
 		&cobra.Command{
@@ -89,23 +89,22 @@ func RootCmd() *cli.Command {
 			Long:  "...",
 			RunE:  rootRunFunc,
 		},
-		// declaring flags with generics: flag type is inferred;
+		// declaring flags with generics: the flag type is inferred;
 		// in this setup, no need to maintain a global variable to hold the state of flags:
 		// all flags are bound to the config.
-		cli.WithFlag("dry-run", false, "Dry run",
-			cli.BindFlagToConfig(keyDry),
-		),
+		cli.WithFlag("dry-run", false, "Dry run"), // cli.BindFlagToConfig(keyDry),
+
 		cli.WithFlag("log-level", "info", "Controls logging verbosity",
 			cli.FlagIsPersistent(),
-			cli.BindFlagToConfig(keyLog),
+			// cli.BindFlagToConfig(keyLog),
 		),
 		cli.WithFlag("url", "https://www.example.com", "The URL to connect to",
 			cli.FlagIsPersistent(),
-			cli.BindFlagToConfig(keyURL),
+			// cli.BindFlagToConfig(keyURL),
 		),
 		cli.WithFlagP("parallel", "p", 2, "Degree of parallelism",
 			cli.FlagIsPersistent(),
-			cli.BindFlagToConfig(keyParallel),
+			// cli.BindFlagToConfig(keyParallel),
 		),
 		// example with RegisterFunc, useful for maximum flexibility.
 		cli.WithFlagFunc(func(flags *pflag.FlagSet) string {
@@ -116,10 +115,20 @@ func RootCmd() *cli.Command {
 		},
 			cli.FlagIsPersistent(),
 			cli.FlagIsRequired(),
-			cli.BindFlagToConfig(keyUser),
+			// cli.BindFlagToConfig(keyUser),
 		),
 		// TODO: example with a gflag
 		// TODO: example with non flags args (e.g. use regular Cobra)
+		// Bind all flags in one go
+		cli.WithBindPersistentFlagsToConfig(map[string]string{
+			"log-level": keyLog,
+			"url":       keyURL,
+			"parallel":  keyParallel,
+			"user":      keyUser,
+		}),
+		cli.WithBindFlagsToConfig(map[string]string{
+			"dry-run": keyDry,
+		}),
 		cli.WithSubCommands(
 			cli.NewCommand(
 				&cobra.Command{
@@ -144,6 +153,7 @@ func RootCmd() *cli.Command {
 				),
 			),
 			cli.NewCommand(
+				// TODO: bake utility to auto resolve version from current module
 				&cobra.Command{
 					Use:   "version",
 					Short: "another sub-command example",
