@@ -3,18 +3,28 @@ package version
 import (
 	"fmt"
 	"runtime/debug"
+	"strconv"
 
 	"github.com/davecgh/go-spew/spew"
 )
 
-// BuildInfo holds versioning information
-type BuildInfo struct {
-	GoVersion string               `json:"goVersion"`
-	Version   string               `json:"version"`
-	Commit    string               `json:"commit"`
-	Date      string               `json:"date"`
-	Settings  []debug.BuildSetting `json:"-"`
-}
+type (
+	// BuildInfo holds versioning information
+	BuildInfo struct {
+		GoVersion  string               `json:"goVersion"`
+		Version    string               `json:"version"`
+		Commit     string               `json:"commit"`
+		Date       string               `json:"date"`
+		IsModified bool                 `json:"isModified"`
+		Settings   []debug.BuildSetting `json:"-"`
+	}
+
+	buildSettings struct {
+		Commit     string
+		Date       string
+		IsModified bool
+	}
+)
 
 var (
 	// Populated by your build system at release build time
@@ -31,20 +41,24 @@ func Resolve() BuildInfo {
 	if isAvailable {
 		buildInfo.GoVersion = goInfo.GoVersion
 		spew.Dump("goInfo: %#v\n", goInfo)
+		spew.Dump("goModuleInfo: %#v\n", goInfo.Main)
 	} else {
 		buildInfo.GoVersion = buildGoVersion
 	}
 
 	if buildDate == "" {
+		settings := lookupBuildSettings(buildInfo.Settings)
+
 		buildInfo.Version = goInfo.Main.Version
-		if buildRevision := lookupBuildSettings(buildInfo.Settings, "vcs.revision"); buildRevision != "" {
-			buildInfo.Commit = buildRevision
+		if settings.Commit != "" {
+			buildInfo.Commit = settings.Commit
+			buildInfo.IsModified = settings.IsModified
 		} else {
 			buildInfo.Commit = fmt.Sprintf("unknown, mod sum: %q", goInfo.Main.Sum)
 		}
 
-		if buildTime := lookupBuildSettings(buildInfo.Settings, "vcs.time"); buildTime != "" {
-			buildInfo.Date = buildTime
+		if settings.Date != "" {
+			buildInfo.Date = settings.Date
 		} else {
 			buildInfo.Date = "(unknown)"
 		}
@@ -57,18 +71,26 @@ func Resolve() BuildInfo {
 	return buildInfo
 }
 
-func lookupBuildSettings(settings []debug.BuildSetting, key string) string {
+func lookupBuildSettings(settings []debug.BuildSetting) buildSettings {
 	/*
 		Typical settings:
 				build	vcs.revision=35798d3d1de0ebb1b241059f74d31486c745c7a4
 				build	vcs.time=2023-09-25T13:22:02Z
 				build	vcs.modified=true
 	*/
+	output := buildSettings{}
+
 	for _, setting := range settings {
-		if setting.Key == key {
-			return setting.Value
+		switch setting.Key {
+		case "vcs.time":
+			output.Date = setting.Value
+		case "vcs.revision":
+			output.Commit = setting.Value
+		case "vcs.modified":
+			isModified, _ := strconv.ParseBool(setting.Value)
+			output.IsModified = isModified
 		}
 	}
 
-	return ""
+	return output
 }
