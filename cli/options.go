@@ -57,7 +57,7 @@ func WithVersion(versionFunc func() string) Option {
 //
 // This collects versioning from package-level variables set at build time OR
 // go module metadata.
-func WithAutoVersion(versionFunc func() string) Option {
+func WithAutoVersion() Option {
 	return func(o *options) {
 		o.withVersion = func() string {
 			jazon, _ := json.Marshal(version.Resolve())

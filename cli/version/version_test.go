@@ -5,8 +5,11 @@ import (
 	"testing"
 
 	"github.com/fredbi/go-cli/cli/version"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResolve(t *testing.T) {
-	log.Println(version.Resolve())
+	require.NotPanics(t, func() {
+		log.Println(version.Resolve())
+	})
 }
