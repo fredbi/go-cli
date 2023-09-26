@@ -4,7 +4,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/fredbi/go-cli/cli/version"
+	"github.com/fredbi/go-cli/cli/cli-utils/version"
 	"github.com/stretchr/testify/require"
 )
 

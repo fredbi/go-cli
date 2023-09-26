@@ -1,6 +1,8 @@
 package cli
 
 type (
+	// FlagOption provides optional behavior to the CLI flags
+	// inlined in a Command definition.
 	FlagOption func(*flagOption)
 
 	flagOption struct {

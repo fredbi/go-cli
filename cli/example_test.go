@@ -149,7 +149,6 @@ func RootCmd() *cli.Command {
 				),
 			),
 			cli.NewCommand(
-				// TODO: bake utility to auto resolve version from current module
 				&cobra.Command{
 					Use:   "version",
 					Short: "another sub-command example",
@@ -158,10 +157,9 @@ func RootCmd() *cli.Command {
 				},
 			),
 		),
-		// apply config to the command tree
-		// TODO: should find a way to apply defaults to config
-		// issue here: viper defaults should be applied before loading the config
-		cli.WithConfig(cli.Config(globalFlags.applyDefaults)),
+		// apply config to the command tree.
+		// Here defaults in config are inherited from flags
+		cli.WithConfig(cli.Config()),
 	)
 }
 

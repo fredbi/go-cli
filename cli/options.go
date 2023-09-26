@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/fredbi/gflag"
+	"github.com/fredbi/go-cli/cli/cli-utils/version"
 	"github.com/fredbi/go-cli/cli/injectable"
-	"github.com/fredbi/go-cli/cli/version"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
