@@ -40,6 +40,17 @@ func Must(err error) {
 	must(err)
 }
 
+// MustOrDie dies on error.
+//
+// Croaks a message like log.Fatalf(format + ": %v", err)
+func MustOrDie(format string, err error) {
+	if err == nil {
+		return
+	}
+
+	die(fmt.Sprintf("%s: %%v", format), err)
+}
+
 func must(err error) {
 	if err == nil {
 		return

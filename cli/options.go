@@ -32,7 +32,7 @@ type (
 
 		// injected dependencies
 		config      *viper.Viper
-		injectables []injectable.ContextInjectable // NOTE: as of go1.20 it remains difficult to use generics here
+		injectables []injectable.ContextInjectable
 	}
 )
 
@@ -100,8 +100,6 @@ func WithBindFlagsToConfig(bindings map[string]string) Option {
 // WithBindPersistentFlagsToConfig binds all persistent flags in the provided map to a config key.
 //
 // The map is like map[string][string]{"flag-name": "viper-key"}
-//
-// TODO: should add a way to automatically determine if the flag is persistent or not.
 func WithBindPersistentFlagsToConfig(bindings map[string]string) Option {
 	return func(o *options) {
 		for name, configKey := range bindings {

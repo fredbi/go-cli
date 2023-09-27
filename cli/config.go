@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	// package-level options to load configurations
 	configOptions = []config.Option{}
 
 	// ConfigEnv defines the environment variable used by the Config() function
@@ -42,7 +43,8 @@ func ConfigForEnv(env string, defaulters ...func(*viper.Viper)) *viper.Viper {
 	return ConfigForEnvWithOptions(env, configOptions, defaulters...)
 }
 
-// ConfigForEnvWithOptions loads and merge a set of config files for a given environment and applies some default values.
+// ConfigForEnvWithOptions loads and merge a set of config files for a given environment and applies
+// some default values.
 //
 // This function accepts some config.Options to control where and how the configuration files should be loaded.
 func ConfigForEnvWithOptions(env string, opts []config.Option, defaulters ...func(*viper.Viper)) *viper.Viper {
@@ -66,7 +68,8 @@ func ConfigForEnvWithOptions(env string, opts []config.Option, defaulters ...fun
 
 // Config calls ConfigForEnv, with the current environment resolved from the variable "CONFIG_ENV".
 //
-// NOTE: users of this package may override the `ConfigEnv` variable to use a different environment variable.
+// NOTE: users of this package may override the `ConfigEnv` variable to use a different
+// environment variable.
 func Config(defaulters ...func(*viper.Viper)) *viper.Viper {
 	env := config.GetenvOrDefault(ConfigEnv, "")
 

@@ -11,8 +11,8 @@ import (
 )
 
 type (
-	// Command wraps a *cobra.Command with some options to register and bind flags
-	// with a functional style.
+	// Command wraps a *cobra.Command with some options to register
+	// and bind flags with a functional style.
 	Command struct {
 		*cobra.Command
 		*options
