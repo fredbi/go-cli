@@ -19,14 +19,14 @@ func SetDie(fatalFunc func(string, ...any)) {
 }
 
 // Die exits the current process with some final croak.
-//
 // By default, Die is a wrapper around log.Fatalf.
 //
 // Use SetDie to alter this behavior (e.g. for mocking).
+//
 // SetDie(nil) will make Die(format, args...) equivalent to
 // panic(fmt.Sprintf(format, args...)).
 //
-// This wraps log.Fatal, essentially for testing purpose.
+// This wraps log.Fatalf, essentially for testing purpose.
 func Die(format string, args ...any) {
 	if die == nil {
 		panic(fmt.Sprintf(format, args...))
@@ -38,6 +38,17 @@ func Die(format string, args ...any) {
 // Must panic on error
 func Must(err error) {
 	must(err)
+}
+
+// MustOrDie dies on error.
+//
+// Croaks a message like log.Fatalf(format + ": %v", err)
+func MustOrDie(format string, err error) {
+	if err == nil {
+		return
+	}
+
+	die(fmt.Sprintf("%s: %%v", format), err)
 }
 
 func must(err error) {

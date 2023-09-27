@@ -134,19 +134,16 @@ import (
 	"github.com/fredbi/go-cli/config"
 )
 
-func ExampleLoad() {
-    ...
+...
 
-	// load and merge configuration files for environment "dev"
-	cfg, err := config.Load("dev", config.WithMute(true))
-	if err != nil {
-		log.Fatalf("loading config: %w", err)
+// load and merge configuration files for environment "dev"
+cfg, err := config.Load("dev", config.WithMute(true))
+if err != nil {
+	log.Fatalf("loading config: %w", err)
 
-		return
-	}
-
-	fmt.Println(cfg.AllSettings())
+	return
 }
+
 ```
 
 ### Goals
@@ -227,5 +224,5 @@ TODO(fredbi)
 The config part is largely based on some seminal past work by [@casualjim](https://github.com/casualjim/).
 I am grateful to him for his much inspiring code.
 
-The version from runtime piece of code is largely inspired by the wonderful work from the
+The version-from-go-runtime piece of code is largely inspired by the wonderful work from the
 [golangci](https://github.com/golangci/golangci-lint) community.

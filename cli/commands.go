@@ -11,8 +11,8 @@ import (
 )
 
 type (
-	// Command wraps a *cobra.Command with some options to register and bind flags
-	// with a functional style.
+	// Command wraps a *cobra.Command with some options to register
+	// and bind flags with a functional style.
 	Command struct {
 		*cobra.Command
 		*options
@@ -34,7 +34,7 @@ func NewCommand(cmd *cobra.Command, opts ...Option) *Command {
 	c.SetContext(c.injectedContext(context.Background()))
 
 	c.pushChildren()
-	c.RegisterFlags()
+	c.registerFlags()
 
 	// config is a special injected dependency because we can bind it with CLI flags
 	if c.config != nil {
@@ -116,8 +116,8 @@ func (c *Command) Commands() []*Command {
 	return c.subs
 }
 
-// Register command-line flags for this command.
-func (c *Command) RegisterFlags() {
+// register command-line flags for this command.
+func (c *Command) registerFlags() {
 	for _, setter := range c.persistentFlagSetters {
 		name := setter.fn(c.PersistentFlags())
 		if setter.required {
@@ -139,21 +139,12 @@ func (c *Command) RegisterFlags() {
 	}
 }
 
-// BindFlags binds the command-line flags marked as such to the configuration registry.
+// bindFlagsWithConfig binds the command-line flags marked as such to the configuration registry.
 //
 // This applies recursively to all sub-commands.
 //
 // It doesn't perform anything if no flags or no config are set for the command
 // (use the options WithFlagVar() and WithConfig())
-func (c *Command) BindFlags() {
-	cfg := c.Config()
-	if cfg == nil {
-		return
-	}
-
-	c.bindFlagsWithConfig(cfg)
-}
-
 func (c *Command) bindFlagsWithConfig(cfg *viper.Viper) {
 	for _, subCommand := range c.Commands() {
 		subCommand.bindFlagsWithConfig(cfg)
@@ -179,7 +170,9 @@ func (c *Command) ExecuteWithArgs(args ...string) error {
 	return c.Execute()
 }
 
-// ExecuteContext wraps cobra.Command.ExecuteContext() by ensuring the config is in the context.
+// ExecuteContext wraps cobra.Command.ExecuteContext().
+//
+// It ensures that all injectables are in the context.
 func (c *Command) ExecuteContext(ctx context.Context) error {
 	return c.Command.ExecuteContext(c.injectedContext(ctx))
 }

@@ -8,10 +8,11 @@ import (
 )
 
 var (
+	// package-level options to load configurations
 	configOptions = []config.Option{}
 
 	// ConfigEnv defines the environment variable used by the Config() function
-	// to find the current environment.
+	// to find the current environment (i.e. a deployment context such as "dev", "prod", etc.).
 	ConfigEnv = "CONFIG_ENV"
 
 	// ConfigDebugEnv defines the environment variable used to instruct the config loader
@@ -23,8 +24,6 @@ var (
 // ConfigForEnv or Config.
 //
 // By default, this package doesn't set any particular option and uses all defaults from the config package.
-//
-// TODO: package-level options should be removed and injected.
 func SetConfigOptions(opts ...config.Option) {
 	configOptions = opts
 }
@@ -35,6 +34,8 @@ func SetConfigOptions(opts ...config.Option) {
 //
 // It dies upon failure.
 //
+// Defaulters a applied after loading the config.
+//
 // Environment variable settings:
 //   - If the environment variable "DEBUG_CONFIG" is set, the loaded settings are dumped to standard output as JSON.
 //   - The environment variable "CONFIG_DIR" defines the folder where the root configuration is located.
@@ -42,7 +43,8 @@ func ConfigForEnv(env string, defaulters ...func(*viper.Viper)) *viper.Viper {
 	return ConfigForEnvWithOptions(env, configOptions, defaulters...)
 }
 
-// ConfigForEnvWithOptions loads and merge a set of config files for a given environment and applies some default values.
+// ConfigForEnvWithOptions loads and merge a set of config files for a given environment and applies
+// some default values.
 //
 // This function accepts some config.Options to control where and how the configuration files should be loaded.
 func ConfigForEnvWithOptions(env string, opts []config.Option, defaulters ...func(*viper.Viper)) *viper.Viper {
@@ -65,8 +67,11 @@ func ConfigForEnvWithOptions(env string, opts []config.Option, defaulters ...fun
 }
 
 // Config calls ConfigForEnv, with the current environment resolved from the variable "CONFIG_ENV".
+//
+// NOTE: users of this package may override the `ConfigEnv` variable to use a different
+// environment variable.
 func Config(defaulters ...func(*viper.Viper)) *viper.Viper {
-	env := config.GetenvOrDefault(ConfigDebugEnv, "")
+	env := config.GetenvOrDefault(ConfigEnv, "")
 
 	return ConfigForEnv(env, defaulters...)
 }
