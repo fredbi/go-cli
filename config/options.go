@@ -12,12 +12,12 @@ type (
 	options struct {
 		basePathFromEnvVar  string
 		basePath            string
-		parentSearchEnabled bool
 		envDir              string
 		radix               string
 		suffix              string
-		skipWatch           bool
 		output              io.Writer
+		parentSearchEnabled bool
+		skipWatch           bool
 	}
 )
 
