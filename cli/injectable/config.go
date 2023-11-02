@@ -18,6 +18,7 @@ type (
 const (
 	ctxConfig commandCtxKey = iota + 1
 	ctxSLogger
+	ctxZapLogger
 )
 
 var _ ContextInjectable = &Config{}
@@ -46,6 +47,7 @@ func ConfigFromContext(ctx context.Context, defaulters ...func() *viper.Viper) *
 	var c Config
 
 	cfg := c.FromContext(ctx)
+
 	if cfg == nil {
 		for _, defaulter := range defaulters {
 			if defaulter == nil {
@@ -54,6 +56,9 @@ func ConfigFromContext(ctx context.Context, defaulters ...func() *viper.Viper) *
 
 			cfg = defaulter()
 		}
+	}
+	if cfg == nil {
+		return nil
 	}
 
 	return cfg.(*viper.Viper)
