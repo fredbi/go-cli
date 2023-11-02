@@ -13,11 +13,6 @@ type (
 	Config struct {
 		config *viper.Viper
 	}
-
-	// TODO: puts logger in context
-	// ZapLogger can wrap a zap logger in the context
-	ZapLogger struct {
-	}
 )
 
 const (
