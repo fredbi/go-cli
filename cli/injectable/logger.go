@@ -44,11 +44,11 @@ func (c SLogger) FromContext(ctx context.Context) interface{} {
 }
 
 func (c *ZapLogger) Context(ctx context.Context) context.Context {
-	return context.WithValue(ctx, ctxSLogger, c.logger)
+	return context.WithValue(ctx, ctxZapLogger, c.logger)
 }
 
 func (c ZapLogger) FromContext(ctx context.Context) interface{} {
-	logger, ok := ctx.Value(ctxSLogger).(*slog.Logger)
+	logger, ok := ctx.Value(ctxZapLogger).(*zap.Logger)
 	if !ok {
 		return nil
 	}
@@ -68,6 +68,9 @@ func SLoggerFromContext(ctx context.Context, defaulters ...func() *slog.Logger) 
 			logger = defaulter()
 		}
 	}
+	if logger == nil {
+		return nil
+	}
 
 	return logger.(*slog.Logger)
 }
@@ -75,7 +78,7 @@ func SLoggerFromContext(ctx context.Context, defaulters ...func() *slog.Logger) 
 // ZapLoggerFromContext retrieves a zap logger from the context.
 //
 // Optional defaulters can be added to deal with a non-existing logger.
-func ZapLoggerFromContext(ctx context.Context, defaulters ...func() *slog.Logger) *zap.Logger {
+func ZapLoggerFromContext(ctx context.Context, defaulters ...func() *zap.Logger) *zap.Logger {
 	var c ZapLogger
 
 	logger := c.FromContext(ctx)
@@ -83,6 +86,9 @@ func ZapLoggerFromContext(ctx context.Context, defaulters ...func() *slog.Logger
 		for _, defaulter := range defaulters {
 			logger = defaulter()
 		}
+	}
+	if logger == nil {
+		return nil
 	}
 
 	return logger.(*zap.Logger)

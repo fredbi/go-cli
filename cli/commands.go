@@ -64,7 +64,7 @@ func (c *Command) injectedContext(ctx context.Context) context.Context {
 	if c.config != nil {
 		injected := injectable.NewConfig(c.config)
 
-		return injected.Context(context.Background())
+		ctx = injected.Context(ctx)
 	}
 
 	for _, injected := range c.injectables {

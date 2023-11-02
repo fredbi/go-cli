@@ -3,9 +3,13 @@ package cli
 import (
 	"fmt"
 	"log"
+	"sync"
 )
 
-var die = log.Fatalf
+var (
+	die = log.Fatalf
+	mx  sync.Mutex
+)
 
 // SetDie alters the package level log.Fatalf implementation,
 // to be used by Die(sring, ...any).
@@ -15,6 +19,9 @@ var die = log.Fatalf
 //
 // This should be used for testing only.
 func SetDie(fatalFunc func(string, ...any)) {
+	mx.Lock()
+	defer mx.Unlock()
+
 	die = fatalFunc
 }
 
@@ -42,13 +49,13 @@ func Must(err error) {
 
 // MustOrDie dies on error.
 //
-// Croaks a message like log.Fatalf(format + ": %v", err)
-func MustOrDie(format string, err error) {
+// Croaks a message like log.Fatalf(msg + ": %v", err)
+func MustOrDie(msg string, err error) {
 	if err == nil {
 		return
 	}
 
-	die(fmt.Sprintf("%s: %%v", format), err)
+	die(fmt.Sprintf("%s: %%v", msg), err)
 }
 
 func must(err error) {
