@@ -82,7 +82,7 @@ func TestCommandWithFlags(t *testing.T) {
 
 				// NOTE: we should extend viper to retrieve the true value.
 				// viper.Get() from flag values is currently hardcoding the retrieval of only a few native types.
-				size := extensions.NewByteSizeValue(0, new(uint64))
+				size := extensions.NewByteSizeValue(new(uint64), 0)
 				require.NoError(t, size.UnmarshalFlag(sizeAsString))
 				require.EqualValues(t, uint64(5*1000*1000), uint64(*size))
 

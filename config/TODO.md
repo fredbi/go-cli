@@ -6,3 +6,4 @@
 * [ ] Support for viper remote configurations (e.g. consul, etc..)
 * [ ] Write YAML of merged CLI
 * [ ] More examples
+* [ ] Option to fail if config can't be resolved
