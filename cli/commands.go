@@ -159,6 +159,13 @@ func (c *Command) bindFlagsWithConfig(cfg *viper.Viper) {
 	}
 }
 
+// Execute the command, with a default context.Background().
+//
+// It ensures that all injectables are in the context.
+func (c *Command) Execute() error {
+	return c.ExecuteContext(context.Background())
+}
+
 // ExecuteWithArgs is a convenience wrapper to execute a command with preset args.
 //
 // This is primarily intended for testing commands.
@@ -174,5 +181,7 @@ func (c *Command) ExecuteWithArgs(args ...string) error {
 //
 // It ensures that all injectables are in the context.
 func (c *Command) ExecuteContext(ctx context.Context) error {
-	return c.Command.ExecuteContext(c.injectedContext(ctx))
+	ctx = c.injectedContext(ctx)
+
+	return c.Command.ExecuteContext(ctx)
 }

@@ -91,7 +91,7 @@ func (l *Loader) LoadForEnv(env string) (*viper.Viper, error) {
 }
 
 func (l *Loader) walkFunc(cfg *viper.Viper) filepath.WalkFunc {
-	return func(pth string, info os.FileInfo, err error) error {
+	return func(pth string, info os.FileInfo, _ error) error {
 		if info.IsDir() {
 			return nil
 		}
@@ -151,11 +151,11 @@ func (l *Loader) parseConfigFromExt(pth, ext string) (map[string]interface{}, er
 	switch ext {
 	case "yaml", "yml":
 		if err = yaml.Unmarshal(buf, &toMerge); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("in file: %s.%s: %w", pth, ext, err)
 		}
 	case "json":
 		if err = json.Unmarshal(buf, &toMerge); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("in file: %s.%s: %w", pth, ext, err)
 		}
 	}
 
@@ -189,13 +189,12 @@ LOOP:
 			}
 
 			if os.IsNotExist(err) {
-				cwd = filepath.Dir(cwd)
-
 				continue
 			}
 
 			return "", err
 		}
+		cwd = filepath.Dir(cwd)
 	}
 
 	if !found {
