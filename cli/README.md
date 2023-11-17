@@ -15,3 +15,4 @@ CLIs with a functional style.
 * wait: command sync utilities, e.g. to run as deployed containers & sync on events
 * version: retrieve version from go module information, or values baked at build-time
 
+## [TODOs](./TODO.md)
