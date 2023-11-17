@@ -6,6 +6,7 @@ import (
 	"github.com/fredbi/gflag"
 	"github.com/fredbi/go-cli/cli/cli-utils/version"
 	"github.com/fredbi/go-cli/cli/injectable"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -33,6 +34,7 @@ type (
 		// injected dependencies
 		config      *viper.Viper
 		injectables []injectable.ContextInjectable
+		cobraOpts   []func(*cobra.Command)
 	}
 )
 
@@ -172,6 +174,15 @@ func WithSliceFlagVarP[T gflag.FlaggablePrimitives | gflag.FlaggableTypes](addr 
 func WithInjectables(injectables ...injectable.ContextInjectable) Option {
 	return func(o *options) {
 		o.injectables = append(o.injectables, injectables...)
+	}
+}
+
+// WithCobraOptions adds any setter that takes the cobra command as input.
+//
+// This is useful to add some of the many setters available to the cobra API (e.g. SetHelpCommand(), SetHelpCommandGroupId() etc).
+func WithCobraOptions(setters ...func(*cobra.Command)) Option {
+	return func(o *options) {
+		o.cobraOpts = append(o.cobraOpts, setters...)
 	}
 }
 

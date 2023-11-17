@@ -45,6 +45,14 @@ func NewCommand(cmd *cobra.Command, opts ...Option) *Command {
 		c.Version = c.withVersion()
 	}
 
+	for _, apply := range c.cobraOpts {
+		if apply == nil {
+			continue
+		}
+
+		apply(c.Command)
+	}
+
 	return c
 }
 
@@ -56,6 +64,13 @@ func (c *Command) pushChildren() {
 			sub.SetContext(c.Context())
 		}
 
+		for _, apply := range c.cobraOpts {
+			if apply == nil {
+				continue
+			}
+
+			apply(sub.Command)
+		}
 		c.Command.AddCommand(sub.Command)
 	}
 }
